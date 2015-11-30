@@ -1,0 +1,3 @@
+[submodule "src/boost/http"]
+	path = src/boost/http
+	url = git@github.com:BoostGSoC14/boost.http.git

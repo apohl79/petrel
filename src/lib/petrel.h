@@ -10,6 +10,7 @@ namespace lib {
 class petrel : public library {
   public:
     petrel(lib_context* ctx) : library(ctx) {}
+    static void init(lua_State*) {}
 
     /// Add a route. This function takes two parameters: (1) a path and (2) a lua function name. The function will be
     /// called for each request with the given path.

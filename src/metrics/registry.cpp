@@ -74,12 +74,14 @@ void registry::run() {
             std::string prefix = "m:";
             while(!m_stop) {
                 boost::this_fiber::sleep_for(std::chrono::seconds(m_log_interval));
+                log_info("----- metrics -----");
                 for (auto metric : m_metrics) {
                     if (metric.second->visible_in_log()) {
                         set_log_tag(prefix + metric.first);
                         log_info(*metric.second);
                     }
                 }
+                log_info("-------------------");
             }
         }).detach();
     }

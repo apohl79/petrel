@@ -40,7 +40,7 @@ class server : boost::noncopyable {
 
     /// Load lua scripts, call bootstrap etc
     void init();
-    
+
     /// Install a lua function as handler for a path.
     void set_route(const std::string& path, const std::string& func);
 
@@ -88,7 +88,7 @@ class server : boost::noncopyable {
     metrics::meter::pointer m_metric_requests;
     metrics::meter::pointer m_metric_errors;
     metrics::timer::pointer m_metric_times;
-    
+
     void run_http2_server();
     void run_http2_tls_server();
 };

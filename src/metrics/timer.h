@@ -28,6 +28,7 @@ class timer : public basic_metric {
     class duration {
         std::vector<timer::pointer> m_timers;
         std::chrono::high_resolution_clock::time_point m_start;
+        bool m_finished = false;
 
       public:
         /// Create an object and assign a timer
@@ -41,11 +42,18 @@ class timer : public basic_metric {
         /// Measure the duration between now and the object creation or the last call to reset and update all timers.
         /// The start time_point will be set to now.
         void update() {
-            auto end = std::chrono::high_resolution_clock::now();
-            for (auto t : m_timers) {
-                t->update(std::chrono::duration_cast<std::chrono::nanoseconds>(end - m_start).count());
+            if (!m_finished) {
+                auto end = std::chrono::high_resolution_clock::now();
+                for (auto t : m_timers) {
+                    t->update(std::chrono::duration_cast<std::chrono::nanoseconds>(end - m_start).count());
+                }
+                m_start = end;
             }
-            m_start = end;
+        }
+        /// Finish a duration measurement
+        void finish() {
+            update();
+            m_finished = true;
         }
     };
 

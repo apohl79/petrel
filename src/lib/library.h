@@ -45,21 +45,6 @@ class library {
     boost::asio::io_service& m_iosvc;
 };
 
-/// A scope watcher class that ensures the deletion of library objects that have been created during request processing.
-struct cleanup_watcher {
-    cleanup_watcher(lib_context* ctx) : m_context(ctx) {}
-    ~cleanup_watcher() {
-        if (nullptr != m_context->p_objects) {
-            for (auto* obj : *m_context->p_objects) {
-                delete obj;
-            }
-            delete m_context->p_objects;
-            m_context->p_objects = nullptr;
-        }
-    }
-    lib_context* m_context;
-};
-
 /// Register a class as library
 #define REGISTER_LIB(NAME)                                                        \
     std::vector<luaL_Reg> NAME##_library_functions;                               \
@@ -72,9 +57,6 @@ struct cleanup_watcher {
         lua_pop(L, 1);                                                            \
         /* create the object and store a pointer for cleanup */                   \
         auto* obj = new NAME(ctx);                                                \
-        if (nullptr == ctx->p_objects) {                                          \
-            ctx->p_objects = new std::vector<library*>;                           \
-        }                                                                         \
         ctx->p_objects->push_back(obj);                                           \
         /* push a pointer to the new object to the stack */                       \
         lua_pushlightuserdata(L, obj);                                            \
@@ -116,6 +98,7 @@ struct cleanup_watcher {
         lua_setfield(L, mt, "__call");                                            \
         lua_setmetatable(L, funcs);                                               \
         lua_pop(L, 1);                                                            \
+        NAME::init(L);                                                            \
         return 0;                                                                 \
     }                                                                             \
     /* Open the library */                                                        \

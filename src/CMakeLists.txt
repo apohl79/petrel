@@ -35,6 +35,7 @@ aux_source_directory(. SOURCES)
 aux_source_directory(.. SOURCES)
 aux_source_directory(lib SOURCES)
 aux_source_directory(metrics SOURCES)
+aux_source_directory(adtech SOURCES)
 aux_source_directory(boost/http/src SOURCES)
 
 add_executable(${PROJECT_NAME} ${SOURCES})
@@ -42,3 +43,6 @@ target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${LUA_LIBRARIES} dl)
 target_link_libraries(${PROJECT_NAME} ${NGHTTP2_LIBRARIES})
+
+# ADTECH
+target_link_libraries(${PROJECT_NAME} avro)

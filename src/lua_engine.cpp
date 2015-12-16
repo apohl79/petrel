@@ -7,6 +7,7 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <ctime>
 
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
@@ -136,6 +137,9 @@ lua_state_ex lua_engine::create_lua_state() {
 
     // Create library context object
     Lex.ctx = reinterpret_cast<lib::lib_context*>(lua_newuserdata(Lex.L, sizeof(lib::lib_context)));
+    Lex.ctx->p_server = nullptr;
+    Lex.ctx->p_io_service = nullptr;
+    Lex.ctx->p_objects = new std::vector<lib::library*>;
     // Add the context to the global env
     lua_setglobal(Lex.L, "petrel_context");
 
@@ -175,6 +179,12 @@ lua_state_ex lua_engine::get_lua_state() {
 }
 
 void lua_engine::free_lua_state(lua_state_ex L) {
+    if (nullptr != L.ctx->p_objects) {
+        for (auto* obj : *L.ctx->p_objects) {
+            delete obj;
+        }
+        L.ctx->p_objects->clear();
+    }
     m_statebuffer_counter->increment();
     std::lock_guard<std::mutex> lock(m_states_mtx);
     m_states.push_back(L);
@@ -362,9 +372,6 @@ void lua_engine::bootstrap(server& srv) {
     boost::asio::io_service iosvc;
     Lex.ctx->p_server = &srv;
     Lex.ctx->p_io_service = &iosvc;
-    Lex.ctx->p_objects = nullptr;
-    // Create a watcher object that takes care of the cleanup when we leave this scope
-    lib::cleanup_watcher watcher(Lex.ctx);
     // Call prepare
     lua_getglobal(L, "bootstrap");
     if (!lua_isfunction(L, -1)) {
@@ -381,9 +388,6 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     auto* L = Lex.L;
     Lex.ctx->p_server = &req->get_server();
     Lex.ctx->p_io_service = &req->get_io_service();
-    Lex.ctx->p_objects = nullptr;
-    // Create a watcher object that takes care of the cleanup when we leave this scope
-    lib::cleanup_watcher watcher(Lex.ctx);
     // Call func
     lua_getglobal(L, func.c_str());
     if (!lua_isfunction(L, -1)) {
@@ -439,7 +443,6 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     auto* L = Lex.L;
     Lex.ctx->p_server = &srv;
     Lex.ctx->p_io_service = &res.io_service();
-    Lex.ctx->p_objects = nullptr;
     std::string path;
     if (!req.uri().raw_query.empty()) {
         std::ostringstream s;
@@ -448,8 +451,6 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     } else {
         path = req.uri().raw_path;
     }
-    // Create a watcher object that takes care of the cleanup when we leave this scope
-    lib::cleanup_watcher watcher(Lex.ctx);
     // Call func
     lua_getglobal(L, func.c_str());
     if (!lua_isfunction(L, -1)) {
@@ -501,6 +502,8 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
 
 void lua_engine::push_http_request(lua_State* L, const session::request_type::pointer req) {
     lua_createtable(L, 0, 8);
+    lua_pushinteger(L, std::time(nullptr));
+    lua_setfield(L, -2, "timestamp");
     lua_pushstring(L, req->method.c_str());
     lua_setfield(L, -2, "method");
     lua_pushstring(L, req->proto.c_str());
@@ -525,6 +528,8 @@ void lua_engine::push_http_request(lua_State* L, const session::request_type::po
 
 void lua_engine::push_http_request(lua_State* L, const http2::server::request& req, const std::string& path) {
     lua_createtable(L, 0, 8);
+    lua_pushinteger(L, std::time(nullptr));
+    lua_setfield(L, -2, "timestamp");
     lua_pushstring(L, req.method().c_str());
     lua_setfield(L, -2, "method");
     lua_pushstring(L, req.uri().scheme.c_str());

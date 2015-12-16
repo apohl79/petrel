@@ -33,12 +33,16 @@ function handle_request(request, response)
    --    end, function(e)
    --      print(LOG_ERR, e)
    --end)
-
+  
    petrel.sleep_millis(20)
    
    --response.status = 200
-   response.content = "worked!!!\n"
-   response.header["x-myheader"] = "myvalue"
+   response.content = "handle_request\n"
+   response.headers["x-myheader"] = "myvalue"
    return response
 end
 
+function handle_request_abc(request, response)
+   response.content = "handle_request\n"
+   return response
+end

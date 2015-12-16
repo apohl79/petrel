@@ -1,12 +1,12 @@
+#include <boost/fiber/all.hpp>
+#include <unistd.h>
+
 #include "server.h"
 #include "session.h"
 #include "log.h"
 #include "options.h"
+#include "fiber_timer.h"
 #include "boost/fiber/yield.hpp"
-
-#include <boost/fiber/all.hpp>
-
-#include <unistd.h>
 
 namespace petrel {
 
@@ -103,9 +103,8 @@ void server::set_route(const std::string& path, const std::string& func) {
                                      const http2::server::request& req, const http2::server::response& res) {
             log_debug("incomong request: method=" << req.method() << " path='" << req.uri().raw_path << " query='"
                                                   << req.uri().raw_query << "' -> func=" << func);
-            // This callback gets called in the context of a worker owned by nghttp2. We need to optimize the following
-            // interval as this is eating up a lot of CPU.
-            bf::wait_interval(std::chrono::nanoseconds(10));
+            // reset the idle counter to stay responsive when we get traffic
+            reset_fiber_idle_counter();
             // total requests
             m_metric_requests->increment();
             // path requests
@@ -137,6 +136,8 @@ void server::set_route(const std::string& path, const std::string& func) {
         m_router.set_route(path, [this, &path, func, metric_req, metric_times,
                                   metric_err](session::request_type::pointer req) {
             log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
+            // reset the idle counter to stay responsive when we get traffic
+            reset_fiber_idle_counter();
             // total requests
             m_metric_requests->increment();
             // path requests
@@ -178,9 +179,13 @@ void server::run_http2_server() {
                                           << options::opts["server.port"].as<std::string>());
     bs::error_code ec;
     if (m_http2_server->listen_and_serve(ec, options::opts["server.listen"].as<std::string>(),
-                                         options::opts["server.port"].as<std::string>())) {
+                                         options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
     }
+    for (auto iosvc : m_http2_server->get_io_services()) {
+        setup_fiber_timer(*iosvc);
+    }
+    m_http2_server->join();
 }
 
 void server::run_http2_tls_server() {
@@ -209,9 +214,13 @@ void server::run_http2_tls_server() {
     log_notice("running http2 server on " << options::opts["server.listen"].as<std::string>() << ":"
                                           << options::opts["server.port"].as<std::string>());
     if (m_http2_server->listen_and_serve(ec, tls, options::opts["server.listen"].as<std::string>(),
-                                         options::opts["server.port"].as<std::string>())) {
+                                         options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
     }
+    for (auto iosvc : m_http2_server->get_io_services()) {
+        setup_fiber_timer(*iosvc);
+    }
+    m_http2_server->join();
 }
 
 }  // petrel

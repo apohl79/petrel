@@ -51,15 +51,6 @@ class worker : boost::noncopyable {
     /// Return the io_service object of the worker.
     inline ba::io_service& io_service() { return m_iosvc; }
 
-    /// Called from the timer_handler. Start fibers for new sessions.
-    inline void start_new_sessions() {
-        std::lock_guard<std::mutex> lock(m_new_session_mtx);
-        for (auto session : m_new_sessions) {
-            bf::fiber(&session::start, session).detach();
-        }
-        m_new_sessions.clear();
-    }
-
   private:
     ba::io_service m_iosvc;
     std::thread m_thread;
@@ -69,6 +60,15 @@ class worker : boost::noncopyable {
     std::vector<ba::ip::tcp::acceptor> m_acceptors;
 
     static void do_accept(ba::ip::tcp::acceptor& acceptor, server& srv);
+
+    /// Called from the timer_handler. Start fibers for new sessions.
+    inline void start_new_sessions() {
+        std::lock_guard<std::mutex> lock(m_new_session_mtx);
+        for (auto session : m_new_sessions) {
+            bf::fiber(&session::start, session).detach();
+        }
+        m_new_sessions.clear();
+    }
 };
 
 }  // petrel

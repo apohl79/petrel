@@ -30,7 +30,7 @@ class router {
             res.end();
         };
     }
-    
+
     /// Add a route function for a path. All incoming requests starting with the given path string will be handled by
     /// the given function.
     void set_route(const std::string& path, route_func_http_type func) { m_set_http.insert(path, std::move(func)); }

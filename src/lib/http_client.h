@@ -14,6 +14,7 @@ namespace ba = boost::asio;
 class http_client : public library {
   public:
     http_client(lib_context* ctx) : library(ctx), m_sock(m_iosvc) {}
+    static void init(lua_State*) {}
     int connect(lua_State* L);
     int disconnect(lua_State* L);
     int get(lua_State* L);

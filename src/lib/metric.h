@@ -12,16 +12,31 @@ class metric : public library {
     enum class type { undef, counter, meter, timer };
 
     metric(lib_context* ctx) : library(ctx), m_type(type::undef) {}
+    static void init(lua_State*) {}
 
-    /// Register a new metric.
+    /// Register a new counter metric.
     /// p1: string name
-    /// p2: string type ("counter"|"meter"|"timer")
-    int register_metric(lua_State* L);
+    int register_counter(lua_State* L);
 
-    /// Load an existing metric.
+    /// Register a new meter metric.
     /// p1: string name
-    /// p2: string type ("counter"|"meter"|"timer")
-    int get_metric(lua_State* L);
+    int register_meter(lua_State* L);
+
+    /// Register a new timer metric.
+    /// p1: string name
+    int register_timer(lua_State* L);
+
+    /// Load an existing counter metric.
+    /// p1: string name
+    int get_counter(lua_State* L);
+
+    /// Load an existing meter metric.
+    /// p1: string name
+    int get_meter(lua_State* L);
+
+    /// Load an existing timer metric.
+    /// p1: string name
+    int get_timer(lua_State* L);
 
     /// Update a timer metric.
     int update(lua_State* L);

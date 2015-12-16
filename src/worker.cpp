@@ -1,9 +1,8 @@
-#include <boost/asio/high_resolution_timer.hpp>
-
 #include "worker.h"
 #include "server.h"
 #include "options.h"
 #include "log.h"
+#include "fiber_timer.h"
 #include "boost/fiber/yield.hpp"
 
 namespace petrel {
@@ -13,6 +12,7 @@ namespace bfa = bf::asio;
 
 using ba::ip::tcp;
 
+/*
 inline void timer_handler(ba::high_resolution_timer& timer, worker& w) {
     w.start_new_sessions();
     boost::this_fiber::yield();    
@@ -27,6 +27,7 @@ inline void run_service(ba::io_service& io_service, worker& w) {
     bf::wait_interval(std::chrono::nanoseconds(10));
     io_service.run();
 }
+*/
 
 worker::~worker() {
     join();
@@ -72,7 +73,8 @@ void worker::run(server& srv) {
     for (auto& acceptor : m_acceptors) {
         bf::fiber(worker::do_accept, std::ref(acceptor), std::ref(srv)).detach();
     }
-    run_service(m_iosvc, *this);
+    setup_fiber_timer(m_iosvc, [this] { start_new_sessions(); });
+    m_iosvc.run();
 }
 
 void worker::join() {

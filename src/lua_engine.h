@@ -121,6 +121,8 @@ class lua_engine : boost::noncopyable {
     /// Load a lua script into the current threads lua state
     void load_script(lua_State* L, const std::string& script);
 
+    /// Create a cookie table on the given lua state
+    void push_cookies(lua_State* L, const std::string& cookies);
     /// Create a lua table object out of the http request and push it to the stack
     void push_http_request(lua_State* L, const session::request_type::pointer req);
     /// Create a lua table object out of the http2 request and push it to the stack

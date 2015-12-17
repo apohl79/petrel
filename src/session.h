@@ -76,6 +76,7 @@ class session : public std::enable_shared_from_this<session> {
         std::string path;
         std::string proto = "http";
         http::message message;
+        bai::tcp::endpoint remote_endpoint;
         response_type response;
 
       private:
@@ -85,13 +86,13 @@ class session : public std::enable_shared_from_this<session> {
     };
 
     using request_type = request;
-    
+
     /// Ctor.
     session(server& srv, ba::io_service& iosvc);
 
     /// Dtor.
     virtual ~session();
-    
+
     /// Return the sessions underlying socket object.
     bai::tcp::socket& socket() {
         return m_socket.next_layer();
@@ -109,7 +110,7 @@ class session : public std::enable_shared_from_this<session> {
     /// Send a response
     void send_response(response_type& res);
 
-  private:    
+  private:
     server& m_srv;
     ba::io_service& m_iosvc;
     http::buffered_socket m_socket;

@@ -28,6 +28,7 @@ void session::start() {
         try {
             // add the req to the queue to wait for sending back a response
             auto req = std::make_shared<request>(self);
+            req->remote_endpoint = m_socket.next_layer().remote_endpoint();
             // read the request
             m_socket.async_read_request(req->method, req->path, req->message, bfa::yield);
             if (http::request_continue_required(req->message)) {

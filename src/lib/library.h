@@ -17,11 +17,11 @@ struct lib_context {
     // The server
     petrel::server* p_server = nullptr;
     inline petrel::server& server() { return *p_server; }
-    
+
     // The boost io_service
     boost::asio::io_service* p_io_service = nullptr;
     inline boost::asio::io_service& io_service() const { return *p_io_service; }
-    
+
     // We keep a vector of library objects that we delete after a request is finished. We don't leave this to the gc.
     std::vector<library*>* p_objects = nullptr;
 };

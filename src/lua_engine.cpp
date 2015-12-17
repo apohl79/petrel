@@ -7,11 +7,13 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
+#include <vector>
 #include <ctime>
 
 #include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace petrel {
 
@@ -401,18 +403,18 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     auto& res = req->response;
     // Get the response
     if (!lua_istable(L, -1)) {
-        log_throw(L, req->path, {"repsonse is no table"});        
+        log_throw(L, req->path, {"repsonse is no table"});
     }
     lua_getfield(L, -1, "status");
     if (!lua_isnumber(L, -1)) {
-        log_throw(L, req->path, {"response.status is no number"});        
+        log_throw(L, req->path, {"response.status is no number"});
     }
     res.status = lua_tointeger(L, -1);
     lua_pop(L, 1);
     // Iterate through response headers
     lua_getfield(L, -1, "headers");
     if (!lua_istable(L, -1)) {
-        log_throw(L, req->path, {"repsonse.headers is no table"});        
+        log_throw(L, req->path, {"repsonse.headers is no table"});
     }
     int hdr_i = lua_gettop(L);
     lua_pushnil(L);
@@ -427,7 +429,7 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     // Get the content
     lua_getfield(L, -1, "content");
     if (!lua_isstring(L, -1)) {
-        log_throw(L, req->path, {"response.content is no string"});        
+        log_throw(L, req->path, {"response.content is no string"});
     }
     boost::string_ref content(lua_tostring(L, -1));
     std::copy(content.begin(), content.end(), std::back_inserter(res.message.body()));
@@ -463,18 +465,18 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     }
     // Get the response
     if (!lua_istable(L, -1)) {
-        log_throw(L, path, {"repsonse is no table"});        
+        log_throw(L, path, {"repsonse is no table"});
     }
     lua_getfield(L, -1, "status");
     if (!lua_isnumber(L, -1)) {
-        log_throw(L, path, {"response.status is no number"});        
+        log_throw(L, path, {"response.status is no number"});
     }
     int status = lua_tointeger(L, -1);
     lua_pop(L, 1);
     // Iterate through response headers
     lua_getfield(L, -1, "headers");
     if (!lua_istable(L, -1)) {
-        log_throw(L, path, {"repsonse.headers is no table"});        
+        log_throw(L, path, {"repsonse.headers is no table"});
     }
     auto hm = http2::header_map();
     int hdr_i = lua_gettop(L);
@@ -490,7 +492,7 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     // Get the content
     lua_getfield(L, -1, "content");
     if (!lua_isstring(L, -1)) {
-        log_throw(L, path, {"response.content is no string"});        
+        log_throw(L, path, {"response.content is no string"});
     }
     std::string data = lua_tostring(L, -1);
     res.write_head(status, std::move(hm));
@@ -500,8 +502,38 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     free_lua_state(Lex);
 }
 
+void lua_engine::push_cookies(lua_State* L, const std::string& cookies) {
+    lua_newtable(L);
+    using namespace boost::algorithm;
+    using it_type = boost::iterator_range<std::string::const_iterator>;
+    std::vector<it_type> vec;
+    // split cookie string by ';'
+    for (auto&& part : iter_split(vec, cookies, token_finder(is_any_of(";")))) {
+        auto* str = &part.front();
+        auto len = part.size();
+        // find the '=' char
+        auto it = std::find(part.begin(), part.end(), '=');
+        if (it != part.end() && it != part.begin()) {
+            auto* eq = &(*it);
+            auto* name = str;
+            auto* val = eq + 1;
+            // skip leading zeros
+            while (*name == ' ' && name < eq) {
+                ++name;
+            }
+            std::size_t name_len = eq - name;
+            std::size_t val_len = len - name_len - 1;
+            if (name_len > 0) {
+                lua_pushlstring(L, name, name_len);
+                lua_pushlstring(L, val, val_len);
+                lua_rawset(L, -3);
+            }
+        }
+    }
+}
+
 void lua_engine::push_http_request(lua_State* L, const session::request_type::pointer req) {
-    lua_createtable(L, 0, 8);
+    lua_createtable(L, 0, 9);
     lua_pushinteger(L, std::time(nullptr));
     lua_setfield(L, -2, "timestamp");
     lua_pushstring(L, req->method.c_str());
@@ -523,11 +555,20 @@ void lua_engine::push_http_request(lua_State* L, const session::request_type::po
         lua_setfield(L, -2, kv.first.c_str());
     }
     lua_setfield(L, -2, "headers");
-    // TODO: Parse cookies and use a table
+    auto addr = req->remote_endpoint.address();
+    lua_pushstring(L, addr.to_string().c_str());
+    lua_setfield(L, -2, "remote_addr_str");
+    lua_pushinteger(L, addr.is_v4() ? 4 : 6);
+    lua_setfield(L, -2, "remote_addr_ip_ver");
+    hdr = req->message.headers().find("cookie");
+    if (hdr != req->message.headers().end()) {
+        push_cookies(L, hdr->second);
+        lua_setfield(L, -2, "cookies");
+    }
 }
 
 void lua_engine::push_http_request(lua_State* L, const http2::server::request& req, const std::string& path) {
-    lua_createtable(L, 0, 8);
+    lua_createtable(L, 0, 9);
     lua_pushinteger(L, std::time(nullptr));
     lua_setfield(L, -2, "timestamp");
     lua_pushstring(L, req.method().c_str());
@@ -544,7 +585,16 @@ void lua_engine::push_http_request(lua_State* L, const http2::server::request& r
         lua_setfield(L, -2, kv.first.c_str());
     }
     lua_setfield(L, -2, "headers");
-    // TODO: Parse cookies and use a table
+    auto addr = req.remote_endpoint().address();
+    lua_pushstring(L, addr.to_string().c_str());
+    lua_setfield(L, -2, "remote_addr_str");
+    lua_pushinteger(L, addr.is_v4()? 4: 6);
+    lua_setfield(L, -2, "remote_addr_ip_ver");
+    auto hdr = req.header().find("cookie");
+    if (hdr != req.header().end()) {
+        push_cookies(L, hdr->second.value.c_str());
+        lua_setfield(L, -2, "cookies");
+    }
 }
 
 void lua_engine::push_http_response(lua_State* L) {

@@ -1,6 +1,14 @@
 Petrel
 ======
 
+Build
+-----
+
+mkdir build
+cd build
+cmake ..
+make
+
 Requirements
 ------------
 
@@ -27,7 +35,8 @@ sudo ./b2 cxxflags="-std=c++1y" toolset=gcc segmented-stacks=on threading=multi 
 ### nghttp2
 
 Download:
-- clone git@github.com:tatsuhiro-t/nghttp2.git
+- clone git@github.com:apohl79/nghttp2.git
+#- clone git@github.com:tatsuhiro-t/nghttp2.git
 
 Build:
 ./configure --enable-asio-lib

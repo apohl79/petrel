@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "server.h"
 #include "server_impl.h"
 #include "log.h"

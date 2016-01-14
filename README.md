@@ -27,8 +27,13 @@ Requirements
 ### Boost
 
 Download:
-- boost 1.59, extract, enter
-- enter libs, clone boost.fiber into "fiber" (https://github.com/olk/boost-fiber)
+- boost (minimum 1.59) (http://www.boost.org/users/download/)
+- boost.fiber (https://github.com/olk/boost-fiber)
+```
+tar xf boost_<version>.tar.bz2
+cd boost_<version>/libs
+git clone git@github.com:olk/boost-fiber.git fiber
+```
 
 Build:
 ```

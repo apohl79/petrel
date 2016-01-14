@@ -16,7 +16,7 @@ function handle_request(request, response)
    response.content =
       "<html>" ..
       "<head><title>petrel test page</title></head>" ..
-      "<body><h1>petrel test page</h1>We got called " .. counter:total() .. "</body>" ..
+      "<body><h1>petrel test page</h1>We got called " .. counter:total() .. " times</body>" ..
       "</html>\n"
 
    return response

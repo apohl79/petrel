@@ -24,7 +24,7 @@ class registry;
 /// server class
 class server : boost::noncopyable {
   public:
-    explicit server();
+    server();
 
     /// Return the lua engine
     lua_engine& get_lua_engine();

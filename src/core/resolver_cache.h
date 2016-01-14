@@ -76,6 +76,10 @@ class resolver_cache {
             if (iter != cache.end() && iter->second.expires > now) {
                 return iterator::create(iter->second.entries.begin(), iter->second.entries.end(), host, service);
             }
+            if (iter != cache.end()) {
+                // expired
+                cache.erase(iter);
+            }
         }
 
         // cache miss or entry expired, do a dns lookup now

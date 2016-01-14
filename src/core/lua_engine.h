@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef LUA_ENGINE_H
 #define LUA_ENGINE_H
 
@@ -27,12 +34,16 @@ namespace http = boost::http;
 namespace http2 = nghttp2::asio_http2;
 namespace bf = boost::fibers;
 
+using lib_load_func_type = std::function<void()>;
+
 /// Lib registration structure
 struct lib_reg {
-    lib_reg(const std::string& n, lua_CFunction o, lua_CFunction i) : name(n), open_func(o), init_func(i) {}
+    lib_reg(const std::string& n, lua_CFunction o, lua_CFunction i, lib_load_func_type u)
+        : name(n), open_func(o), init_func(i), unload_func(u) {}
     std::string name;
     lua_CFunction open_func;
     lua_CFunction init_func;
+    lib_load_func_type unload_func;
 };
 
 namespace lib {
@@ -76,7 +87,8 @@ class lua_engine : boost::noncopyable {
     /// Find scripts in a directory and it's sub directories
     static void load_script_dir(const std::string& dir, std::vector<std::string>& vec);
     /// Library helpers
-    static int register_lib(const std::string& name, lua_CFunction open_func, lua_CFunction init_func);
+    static int register_lib(const std::string& name, lua_CFunction open_func, lua_CFunction init_func,
+                            lib_load_func_type load_func, lib_load_func_type unload_func);
     /// Print out all registered libs
     static void print_registered_libs();
 
@@ -107,6 +119,8 @@ class lua_engine : boost::noncopyable {
 
     /// Create a new lua state
     lua_state_ex create_lua_state();
+    /// Destroy a lua state
+    void destroy_lua_state(lua_state_ex L);
     /// Fill the lua state buffer
     void fill_lua_state_buffer();
     /// Get a lua state from the pool.

@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "options.h"
 #include "log.h"
 #include <fstream>
@@ -14,6 +21,7 @@ bool options::parse(int argc, char** argv) {
     bpo::options_description desc_help("General options");
     desc_help.add_options()
         ("help,h", "Show help screen")
+        ("version,v", "Show version")
         ("config,c", bpo::value<std::string>(), "Config file")
         ("test,t", "Test a config file and exit")
         ;
@@ -87,7 +95,7 @@ bool options::parse(int argc, char** argv) {
 
     try {
         bpo::store(bpo::parse_command_line(argc, argv, desc), opts);
-        if (opts.count("help")) {
+        if (opts.count("help") || opts.count("version")) {
             return true;
         }
         if (opts.count("config")) {

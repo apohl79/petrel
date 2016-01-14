@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef METRICS_METER_H
 #define METRICS_METER_H
 
@@ -14,14 +21,14 @@ namespace metrics {
 
 namespace bf = boost::fibers;
 
-/// Calculate the alpha for the given time interval in seconds
-constexpr double alpha(int secs) { return 1 - std::exp(std::log(0.005) / secs); }
-
 /// Meter class which supports rates over 1min, 5min, 15min and 1hr intervals by implementing EWMA.
 /// See: https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
 class meter : public basic_metric {
   public:
     using pointer = std::shared_ptr<meter>;
+
+    meter()
+        : ALPHA_1min(alpha(60)), ALPHA_5min(alpha(5 * 60)), ALPHA_15min(alpha(15 * 60)), ALPHA_1hr(alpha(60 * 60)) {}
 
     void aggregate() {
         for (;;) {
@@ -70,10 +77,13 @@ class meter : public basic_metric {
     double m_rate_15min = 0.0;
     double m_rate_1hr = 0.0;
 
-    static constexpr double ALPHA_1min = alpha(60);
-    static constexpr double ALPHA_5min = alpha(5 * 60);
-    static constexpr double ALPHA_15min = alpha(15 * 60);
-    static constexpr double ALPHA_1hr = alpha(60 * 60);
+    const double ALPHA_1min;
+    const double ALPHA_5min;
+    const double ALPHA_15min;
+    const double ALPHA_1hr;
+
+    /// Calculate the alpha for the given time interval in seconds
+    inline double alpha(int secs) { return 1 - std::exp(std::log(0.005) / secs); }
 };
 
 }  // metrics

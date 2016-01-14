@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef METRICS_COUNTER_H
 #define METRICS_COUNTER_H
 
@@ -12,7 +19,7 @@ namespace metrics {
 class counter : public basic_metric {
   public:
     using pointer = std::shared_ptr<counter>;
-    
+
     /// Increment counter and return
     std::uint_fast64_t increment(std::uint_fast64_t i = 1) { return m_val.fetch_add(i, std::memory_order_relaxed) + i; }
 

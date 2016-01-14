@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include <cstdio>
 #include <cstring>
 #include <sstream>
@@ -61,13 +68,13 @@ int log::sync() {
         if (m_syslog) {
             syslog(m_priority, "%s", m_buffer.c_str());
         } else {
-            std::ostringstream tid;
-            tid << "t:";
-#ifndef __clang__
-            tid << "0x" << std::hex;
-#endif
-            tid << std::this_thread::get_id();
-            format(std::cout, tid.str(), 16, log_color::darkgray);
+            std::time_t t = std::time(nullptr);
+            std::tm tm = *std::localtime(&t);
+            std::string fmt = "%h %e %T";
+            std::ostringstream tstr;
+            std::use_facet<std::time_put<char>>(std::clog.getloc())
+                .put(std::ostreambuf_iterator<char>(tstr), tstr, ' ', &tm, &fmt[0], &fmt[0] + fmt.size());
+            format(std::cout, tstr.str(), 15, log_color::darkgray);
             std::cout << m_buffer;
         }
         m_buffer.erase();

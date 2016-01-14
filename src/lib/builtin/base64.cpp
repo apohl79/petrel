@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "base64.h"
 
 #include <boost/archive/iterators/binary_from_base64.hpp>
@@ -9,9 +16,10 @@
 namespace petrel {
 namespace lib {
 
-REGISTER_LIB(base64);
-REGISTER_LIB_FUNCTION(base64, encode);
-REGISTER_LIB_FUNCTION(base64, decode);
+DECLARE_LIB(base64);
+ADD_LIB_FUNCTION(encode);
+ADD_LIB_FUNCTION(decode);
+REGISTER_LIB_BUILTIN();
 
 using namespace boost::archive::iterators;
 using namespace boost::algorithm;

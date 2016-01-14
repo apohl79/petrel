@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef LOG_H
 #define LOG_H
 
@@ -99,7 +106,7 @@ private:
     static int __petrel_log_prio
 #define init_log_static(T, P) \
     std::string T::__petrel_log_tag = #T; \
-    int T::__petrel_log_prio = petrel::log::to_int(P)
+    int T::__petrel_log_prio = ::petrel::log::to_int(P)
 
 #define set_log_tag(T) \
     std::string __petrel_log_tag { T }
@@ -108,39 +115,39 @@ private:
 #define update_log_tag(T) __petrel_log_tag = T
 
 #define set_log_priority(P)                             \
-    int __petrel_log_prio { petrel::log::to_int(P) }
-#define get_log_priority() petrel::log::to_priority(__petrel_log_prio)
-#define get_log_priority_static(T) petrel::log::to_priority(T::__petrel_log_prio)
-#define update_log_priority(P) __petrel_log_prio = petrel::log::to_int(P)
+    int __petrel_log_prio { ::petrel::log::to_int(P) }
+#define get_log_priority() ::petrel::log::to_priority(__petrel_log_prio)
+#define get_log_priority_static(T) ::petrel::log::to_priority(T::__petrel_log_prio)
+#define update_log_priority(P) __petrel_log_prio = ::petrel::log::to_int(P)
 
 #define set_log_tag_default_priority(T) \
     set_log_tag(T);                     \
-    set_log_priority(petrel::log_priority::info)
+    set_log_priority(::petrel::log_priority::info)
 
 #define log_base(P, M)                                                                      \
-    if (P <= petrel::log::m_filter_priority) {                                              \
-        std::clog << petrel::log_tag(__petrel_log_tag) << petrel::log::to_priority(P) << M; \
+    if (P <= ::petrel::log::m_filter_priority) {                                              \
+        std::clog << ::petrel::log_tag(__petrel_log_tag) << ::petrel::log::to_priority(P) << M; \
     }
 #define log_default(M) log_base(__petrel_log_prio, M << std::endl)
 #define log_default_noln(M) log_base(__petrel_log_prio, M)
 #define log_plain_noln(M) \
-    if (__petrel_log_prio <= petrel::log::m_filter_priority) std::clog << M
+    if (__petrel_log_prio <= ::petrel::log::m_filter_priority) std::clog << M
 #define log_plain(M) log_plain_noln(M << std::endl)
-#define log_emerg_noln(M) log_base(petrel::log::to_int(petrel::log_priority::emerg), M)
+#define log_emerg_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::emerg), M)
 #define log_emerg(M) log_emerg_noln(M << std::endl)
-#define log_alert_noln(M) log_base(petrel::log::to_int(petrel::log_priority::alert), M)
+#define log_alert_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::alert), M)
 #define log_alert(M) log_alter_noln(M << std::endl)
-#define log_crit_noln(M) log_base(petrel::log::to_int(petrel::log_priority::crit), M)
+#define log_crit_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::crit), M)
 #define log_crit(M) log_crit_noln(M << std::endl)
-#define log_err_noln(M) log_base(petrel::log::to_int(petrel::log_priority::err), M)
+#define log_err_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::err), M)
 #define log_err(M) log_err_noln(M << std::endl)
-#define log_warn_noln(M) log_base(petrel::log::to_int(petrel::log_priority::warn), M)
+#define log_warn_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::warn), M)
 #define log_warn(M) log_warn_noln(M << std::endl)
-#define log_notice_noln(M) log_base(petrel::log::to_int(petrel::log_priority::notice), M)
+#define log_notice_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::notice), M)
 #define log_notice(M) log_notice_noln(M << std::endl)
-#define log_info_noln(M) log_base(petrel::log::to_int(petrel::log_priority::info), M)
+#define log_info_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::info), M)
 #define log_info(M) log_info_noln(M << std::endl)
-#define log_debug_noln(M) log_base(petrel::log::to_int(petrel::log_priority::debug), M)
+#define log_debug_noln(M) log_base(::petrel::log::to_int(::petrel::log_priority::debug), M)
 #define log_debug(M) log_debug_noln(M << std::endl)
 
 }  // petrel

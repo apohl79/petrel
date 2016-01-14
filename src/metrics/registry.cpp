@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "registry.h"
 #include "options.h"
 #include "resolver_cache.h"
@@ -18,7 +25,7 @@ namespace bai = ba::ip;
 namespace bs = boost::system;
 
 inline void timer_handler(ba::high_resolution_timer& timer) {
-    boost::this_fiber::yield();    
+    boost::this_fiber::yield();
     timer.expires_from_now(bf::wait_interval());
     timer.async_wait(std::bind(timer_handler, std::ref(timer)));
 }

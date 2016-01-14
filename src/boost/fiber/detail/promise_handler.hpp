@@ -112,7 +112,7 @@ public:
         }
     }
 //<-
-    using promise_handler_base< T >::promise_ptr;
+    using typename promise_handler_base< T >::promise_ptr;
     using promise_handler_base< T >::get_promise;
 //->
 };
@@ -141,7 +141,7 @@ public:
         }
     }
 
-    using promise_handler_base< void >::promise_ptr;
+    using typename promise_handler_base< void >::promise_ptr;
     using promise_handler_base< void >::get_promise;
 };
 

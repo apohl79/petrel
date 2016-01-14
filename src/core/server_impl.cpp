@@ -1,7 +1,15 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include <boost/fiber/all.hpp>
 #include <unistd.h>
 
 #include "server.h"
+#include "server_impl.h"
 #include "session.h"
 #include "log.h"
 #include "options.h"
@@ -15,7 +23,7 @@ namespace bpo = boost::program_options;
 namespace bf = boost::fibers;
 namespace bfa = bf::asio;
 
-server::server() : m_registry(m_resolver_cache) {
+server_impl::server_impl(server* srv) : m_server(srv), m_registry(m_resolver_cache) {
     m_num_workers = options::opts["server.workers"].as<int>();
     if (m_num_workers == 0) {
         m_num_workers = sysconf(_SC_NPROCESSORS_ONLN);
@@ -28,7 +36,7 @@ server::server() : m_registry(m_resolver_cache) {
     m_metric_times = m_registry.register_metric<metrics::timer>("times");
 }
 
-void server::init() {
+void server_impl::init() {
     log_info("running " << m_num_workers << " workers");
     if (options::opts.count("server.http2")) {
         m_http2_server = std::make_unique<http2::server::http2>();
@@ -41,12 +49,11 @@ void server::init() {
         }
     }
 
-    lua_engine::print_registered_libs();
     std::vector<std::string> scripts;
     lua_engine::load_script_dir(options::opts["lua.root"].as<std::string>(), scripts);
     m_lua_engine.set_lua_scripts(scripts);
-    m_lua_engine.start(*this);
-    m_lua_engine.bootstrap(*this);
+    m_lua_engine.bootstrap(*m_server);
+    m_lua_engine.start(*m_server);
 
     if (m_num_routes == 0) {
         throw(std::runtime_error("No routes. You have to setup at least one route in your bootstrap function."));
@@ -55,7 +62,7 @@ void server::init() {
     m_registry.start();
 }
 
-void server::run() {
+void server_impl::run() {
     if (options::opts.count("server.http2")) {
         // Install a handler that uses our own router
         m_http2_server->handle("/", [this](const http2::server::request& req, const http2::server::response& res) {
@@ -83,7 +90,7 @@ void server::run() {
         }
         // Run the io_service onjects
         for (auto& w : m_workers) {
-            w->start(*this);
+            w->start(*m_server);
         }
         log_notice("running http server on " << listen << ":" << port);
         // Join the workers
@@ -93,7 +100,7 @@ void server::run() {
     }
 }
 
-void server::set_route(const std::string& path, const std::string& func) {
+void server_impl::set_route(const std::string& path, const std::string& func) {
     auto metric_req = m_registry.register_metric<metrics::meter>("requests_" + func);
     auto metric_err = m_registry.register_metric<metrics::meter>("errors_" + func);
     auto metric_times = m_registry.register_metric<metrics::timer>("times_" + func);
@@ -117,18 +124,23 @@ void server::set_route(const std::string& path, const std::string& func) {
                 // create a fiber and run the request handler
                 bf::fiber([this, func, &req, &res, times, metric_err] {
                     try {
-                        m_lua_engine.handle_http_request(func, req, res, *this);
+                        m_lua_engine.handle_http_request(func, req, res, *m_server);
                     } catch (std::runtime_error& e) {
                         m_metric_errors->increment();
                         metric_err->increment();
-                        res.write_head(500);
+                        auto hm = http2::header_map();
+                        hm.emplace(
+                            std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
+                        res.write_head(500, std::move(hm));
                         res.end();
                     }
                 }).detach();
             } catch (std::runtime_error& e) {
                 m_metric_errors->increment();
                 metric_err->increment();
-                res.write_head(500);
+                auto hm = http2::header_map();
+                hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
+                res.write_head(500, std::move(hm));
                 res.end();
             }
         });
@@ -174,7 +186,7 @@ void server::set_route(const std::string& path, const std::string& func) {
     log_info("  new route: " << path << " -> " << func);
 }
 
-void server::run_http2_server() {
+void server_impl::run_http2_server() {
     log_notice("Running http2 server on " << options::opts["server.listen"].as<std::string>() << ":"
                                           << options::opts["server.port"].as<std::string>());
     bs::error_code ec;
@@ -188,7 +200,7 @@ void server::run_http2_server() {
     m_http2_server->join();
 }
 
-void server::run_http2_tls_server() {
+void server_impl::run_http2_tls_server() {
     log_notice("enabling https support");
     if (!options::opts.count("server.http2.key-file")) {
         throw std::invalid_argument("You have to specify a private key file (--server.http2.key-file) to use SSL/TLS.");

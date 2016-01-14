@@ -1,3 +1,8 @@
+-- Copyright (c) 2016 Andreas Pohl
+-- Licensed under MIT (see COPYING)
+--
+-- Author: Andreas Pohl
+
 -- Request handling entry point
 function handle_request(request, response)
    -- print out req table

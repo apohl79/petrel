@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef METRICS_REGISTRY_H
 #define METRICS_REGISTRY_H
 
@@ -78,7 +85,7 @@ class registry : boost::noncopyable {
 
     ba::io_service m_iosvc;
     petrel::resolver_cache& m_resolver;
-    
+
     void run();
 };
 

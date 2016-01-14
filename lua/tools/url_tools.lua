@@ -1,3 +1,8 @@
+-- Copyright (c) 2016 Andreas Pohl
+-- Licensed under MIT (see COPYING)
+--
+-- Author: Andreas Pohl
+
 function url_decode(str)
   str = string.gsub(str, "+", " ")
   str = string.gsub(str, "%%(%x%x)",

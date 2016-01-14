@@ -1,10 +1,17 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef LIB_HTTP_CLIENT_H
 #define LIB_HTTP_CLIENT_H
 
 #include <boost/asio.hpp>
 
+#include "lua_engine.h"
 #include "library.h"
-//#include "lua_engine.h"
 
 namespace petrel {
 namespace lib {
@@ -14,7 +21,7 @@ namespace ba = boost::asio;
 class http_client : public library {
   public:
     http_client(lib_context* ctx) : library(ctx), m_sock(m_iosvc) {}
-    static void init(lua_State*) {}
+
     int connect(lua_State* L);
     int disconnect(lua_State* L);
     int get(lua_State* L);

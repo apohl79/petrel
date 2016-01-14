@@ -1,8 +1,15 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef LIB_BASE64_H
 #define LIB_BASE64_H
 
-#include "library.h"
 #include "lua_engine.h"
+#include "library.h"
 
 namespace petrel {
 namespace lib {
@@ -10,7 +17,6 @@ namespace lib {
 class base64 : public library {
   public:
     base64(lib_context* ctx) : library(ctx) {}
-    static void init(lua_State*) {}
 
     /// Encode a string to base64
     static int encode(lua_State* L);

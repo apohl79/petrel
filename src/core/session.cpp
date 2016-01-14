@@ -1,7 +1,15 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include <boost/utility/string_ref.hpp>
 
 #include "session.h"
 #include "server.h"
+#include "router.h"
 #include "metrics/registry.h"
 #include "metrics/meter.h"
 #include "metrics/timer.h"

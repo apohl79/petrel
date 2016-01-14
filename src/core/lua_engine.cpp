@@ -1,7 +1,15 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "lua_engine.h"
 #include "server.h"
 #include "options.h"
 #include "lib/library.h"
+#include "metrics/registry.h"
 
 #include <sstream>
 #include <iostream>
@@ -50,6 +58,11 @@ lua_engine::~lua_engine() {
     if (m_states_watcher.joinable()) {
         m_states_watcher.join();
     }
+    for (auto& lib : m_libs) {
+        if (nullptr != lib.unload_func) {
+            lib.unload_func();
+        }
+    }
 }
 
 void lua_engine::print_registered_libs() {
@@ -60,6 +73,8 @@ void lua_engine::print_registered_libs() {
 }
 
 void lua_engine::start(server& srv) {
+    print_registered_libs();
+    log_info("initializing state buffer");
     m_statebuffer_counter = srv.get_metrics_registry().register_metric<metrics::counter>("lua_statebuffer");
     m_states_counter = srv.get_metrics_registry().register_metric<metrics::counter>("lua_states_created");
     fill_lua_state_buffer();
@@ -82,6 +97,7 @@ void lua_engine::fill_lua_state_buffer() {
     }
     for (int i = to_create; i > 0; --i) {
         auto Lex = create_lua_state();
+        m_states_counter->increment();
         m_statebuffer_counter->increment();
         std::lock_guard<std::mutex> lock(m_states_mtx);
         m_states.push_back(Lex);
@@ -145,8 +161,13 @@ lua_state_ex lua_engine::create_lua_state() {
     // Add the context to the global env
     lua_setglobal(Lex.L, "petrel_context");
 
-    m_states_counter->increment();
     return Lex;
+}
+
+void lua_engine::destroy_lua_state(lua_state_ex L) {
+    if (nullptr != L.L) {
+        lua_close(L.L);
+    }
 }
 
 void lua_engine::reload_lua_scripts() {
@@ -176,6 +197,7 @@ lua_state_ex lua_engine::get_lua_state() {
     if (nullptr == Lex.L) {
         log_warn("creating a lua state in the request handler, you need to increase the lua.statebuffer value!");
         Lex = create_lua_state();
+        m_states_counter->increment();
     }
     return Lex;
 }
@@ -235,8 +257,12 @@ void lua_engine::load_script(lua_State* L, const std::string& script) {
     }
 }
 
-int lua_engine::register_lib(const std::string& name, lua_CFunction open_func, lua_CFunction init_func) {
-    m_libs.push_back(lib_reg(name, open_func, init_func));
+int lua_engine::register_lib(const std::string& name, lua_CFunction open_func, lua_CFunction init_func,
+                             lib_load_func_type load_func, lib_load_func_type unload_func) {
+    m_libs.push_back(lib_reg(name, open_func, init_func, unload_func));
+    if (nullptr != load_func) {
+        load_func();
+    }
     return 0;
 }
 
@@ -290,8 +316,8 @@ void lua_engine::print_type_simple(lua_State* L, int i, log_priority prio, bool 
 }
 
 void lua_engine::print_table(lua_State* L, int i, log_priority prio) {
-    log_plain_noln(log_color::yellow << "{" << log_color::reset);
     set_log_priority(prio);
+    log_plain_noln(log_color::yellow << "{" << log_color::reset);
     int t = i < 0 ? lua_gettop(L) + i + 1 : i;
     bool first = true;
     lua_pushnil(L);
@@ -368,7 +394,7 @@ int lua_engine::traceback(lua_State* L) {
 
 void lua_engine::bootstrap(server& srv) {
     log_info("running bootstrap");
-    auto Lex = get_lua_state();
+    auto Lex = create_lua_state();
     auto* L = Lex.L;
     // As we have no io_service at this time, we create one. Async code will not work yet.
     boost::asio::io_service iosvc;
@@ -382,7 +408,7 @@ void lua_engine::bootstrap(server& srv) {
     if (lua_pcall(L, 0, 0, Lex.traceback_idx)) {
         throw std::runtime_error(std::string("bootstrap call failed: ") + std::string(lua_tostring(L, -1)));
     }
-    free_lua_state(Lex);
+    destroy_lua_state(Lex);
 }
 
 void lua_engine::handle_http_request(const std::string& func, session::request_type::pointer req) {
@@ -417,15 +443,24 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
         log_throw(L, req->path, {"repsonse.headers is no table"});
     }
     int hdr_i = lua_gettop(L);
+    bool has_server = false;
     lua_pushnil(L);
     while (lua_next(L, hdr_i) != 0) {
         if (lua_isstring(L, -1) && lua_isstring(L, -2)) {
+            boost::string_ref name(lua_tostring(L, -2));
+            if (!has_server && name == "server") {
+                has_server = true;
+            }
             res.message.headers().emplace(
-                std::make_pair(std::string(lua_tostring(L, -2)), std::string(lua_tostring(L, -1))));
+                std::make_pair(std::string(name), std::string(lua_tostring(L, -1))));
         }
         lua_pop(L, 1);
     }
     lua_pop(L, 1);
+    // Set server header if not present
+    if (!has_server) {
+        res.message.headers().emplace(std::make_pair(std::string("server"), std::string("petrel")));
+    }
     // Get the content
     lua_getfield(L, -1, "content");
     if (!lua_isstring(L, -1)) {
@@ -479,16 +514,24 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
         log_throw(L, path, {"repsonse.headers is no table"});
     }
     auto hm = http2::header_map();
+    bool has_server = false;
     int hdr_i = lua_gettop(L);
     lua_pushnil(L);
     while (lua_next(L, hdr_i) != 0) {
         if (lua_isstring(L, -1) && lua_isstring(L, -2)) {
-            hm.emplace(std::make_pair(std::string(lua_tostring(L, -2)),
-                                      http2::header_value{std::string(lua_tostring(L, -1)), false}));
+            boost::string_ref name(lua_tostring(L, -2));
+            if (!has_server && name == "server") {
+                has_server = true;
+            }
+            hm.emplace(std::make_pair(std::string(name), http2::header_value{std::string(lua_tostring(L, -1)), false}));
         }
         lua_pop(L, 1);
     }
     lua_pop(L, 1);
+    // Set server header if not present
+    if (!has_server) {
+        hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
+    }
     // Get the content
     lua_getfield(L, -1, "content");
     if (!lua_isstring(L, -1)) {
@@ -517,7 +560,7 @@ void lua_engine::push_cookies(lua_State* L, const std::string& cookies) {
             auto* eq = &(*it);
             auto* name = str;
             auto* val = eq + 1;
-            // skip leading zeros
+            // skip leading spaces
             while (*name == ' ' && name < eq) {
                 ++name;
             }

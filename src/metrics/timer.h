@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef METRICS_TIMER_H
 #define METRICS_TIMER_H
 
@@ -22,7 +29,7 @@ class timer : public basic_metric {
   public:
     using pointer = std::shared_ptr<timer>;
 
-    /// A wrapper class to help with measureing a duration. Multiple timers can be assigned and updated simultanously.
+    /// A wrapper class to help with measuring a duration. Multiple timers can be assigned and updated simultanously.
     /// The class can be used for scope measurements too. The ctor will set the start time_point and the dtor will
     /// update the assigned timers.
     class duration {

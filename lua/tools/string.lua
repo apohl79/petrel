@@ -1,3 +1,8 @@
+-- Copyright (c) 2016 Andreas Pohl
+-- Licensed under MIT (see COPYING)
+--
+-- Author: Andreas Pohl
+
 function string.split(s, pattern, maxsplit)
    local s = s
    local pattern = pattern or ' '

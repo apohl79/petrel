@@ -1,5 +1,12 @@
-#ifndef SERVER_H
-#define SERVER_H
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
+#ifndef SERVER_IMPL_H
+#define SERVER_IMPL_H
 
 #include <memory>
 #include <string>
@@ -28,12 +35,12 @@ namespace http2 = nghttp2::asio_http2;
 namespace ba = boost::asio;
 
 /// The server class
-class server : boost::noncopyable {
+class server_impl: boost::noncopyable {
   public:
     set_log_tag_default_priority("server");
 
     /// Ctor.
-    server();
+    server_impl(server* srv);
 
     /// Run the server and block.
     void run();
@@ -71,6 +78,9 @@ class server : boost::noncopyable {
     }
 
   private:
+    /// Pointer to the server wrapper object
+    server* m_server = nullptr;
+
     int m_num_workers;
     std::vector<std::unique_ptr<worker>> m_workers;
     std::atomic<std::size_t> m_next_worker{0};
@@ -94,4 +104,5 @@ class server : boost::noncopyable {
 };
 
 } // petrel
-#endif  // SERVER_H
+
+#endif  // SERVER_IMPL_H

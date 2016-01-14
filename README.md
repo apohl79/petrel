@@ -48,7 +48,7 @@ sudo make install
 ### Lua
 
 Download:
-- lua 5.3.1
+- lua 5.3
 
 Build:
 # We have to build lua with C++ support to make it use C++ try/catch

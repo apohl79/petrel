@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef OPTIONS_H
 #define OPTIONS_H
 
@@ -7,7 +14,7 @@ namespace bpo = boost::program_options;
 
 namespace petrel {
 
-class options {   
+class options {
   public:
     static bpo::variables_map opts;
     static bpo::options_description desc;

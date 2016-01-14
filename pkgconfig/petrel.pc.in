@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=${prefix}/@INSTALL_LIB_DIR@
+includedir=${prefix}/include
+
+Name: petrel
+Description: An HTTP/1 and HTTP/2 webserver providing a C++/lua framework for easy micro/web service development.
+Version: @PETREL_VERSION@
+URL: https://github.com/apohl79/petrel
+Libs: -L${libdir} -lpetrel_core
+Cflags: -I${includedir}

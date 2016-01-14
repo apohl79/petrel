@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef RESOLVER_CACHE_H
 #define RESOLVER_CACHE_H
 
@@ -44,7 +51,7 @@ class resolver_cache {
     using udp_cache = cache<udp>;
 
     resolver_cache();
-    
+
     /// This method behaves like the basic_resolver version. It checks the cache first, does a DNS lookup on a miss and
     /// updates the cache afterwards.
     template <typename proto_type>
@@ -56,7 +63,7 @@ class resolver_cache {
         using query = typename cache<proto_type>::query;
         using resolver = typename cache<proto_type>::resolver;
         using entry = typename cache<proto_type>::entry;
-        
+
         auto& cache = get_cache<proto_type>();
         auto& mtx = get_cache_mtx<proto_type>();
         std::string key = host + ":" + service;

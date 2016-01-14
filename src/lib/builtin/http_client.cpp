@@ -1,5 +1,13 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #include "http_client.h"
 #include "log.h"
+#include "server.h"
 #include "resolver_cache.h"
 
 #include <string>
@@ -13,10 +21,11 @@
 namespace petrel {
 namespace lib {
 
-REGISTER_LIB(http_client);
-REGISTER_LIB_METHOD(http_client, connect);
-REGISTER_LIB_METHOD(http_client, disconnect);
-REGISTER_LIB_METHOD(http_client, get);
+DECLARE_LIB(http_client);
+ADD_LIB_METHOD(connect);
+ADD_LIB_METHOD(disconnect);
+ADD_LIB_METHOD(get);
+REGISTER_LIB_BUILTIN();
 
 namespace bs = boost::system;
 namespace bf = boost::fibers;

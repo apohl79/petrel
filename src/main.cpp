@@ -1,4 +1,5 @@
 #include "server.h"
+#include "server_impl.h"
 #include "log.h"
 #include "options.h"
 
@@ -8,7 +9,13 @@ int main(int argc, char** argv) {
         return 1;
     }
     if (petrel::options::opts.count("help")) {
-        std::cout << "Usage: " << argv[0] << " <options>" << std::endl << petrel::options::desc << std::endl;
+        std::cout << "petrel version: petrel/" << PETREL_VERSION << std::endl
+                  << "Usage: " << argv[0] << " <options>" << std::endl
+                  << petrel::options::desc << std::endl;
+        return 0;
+    }
+    if (petrel::options::opts.count("version")) {
+        std::cout << "petrel version: petrel/" << PETREL_VERSION << std::endl;
         return 0;
     }
     if (petrel::options::opts.count("test")) {
@@ -24,8 +31,8 @@ int main(int argc, char** argv) {
 
     try {
         petrel::server s;
-        s.init();
-        s.run();
+        s.impl()->init();
+        s.impl()->run();
     } catch (std::exception& e) {
         log_emerg(e.what());
         return 1;

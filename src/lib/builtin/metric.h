@@ -1,8 +1,17 @@
+/*
+ * Copyright (c) 2016 Andreas Pohl
+ * Licensed under MIT (see COPYING)
+ *
+ * Author: Andreas Pohl
+ */
+
 #ifndef LIB_METRIC_H
 #define LIB_METRIC_H
 
+#include "lua_engine.h"
 #include "library.h"
 #include "metrics/basic_metric.h"
+#include "metrics/timer.h"
 
 namespace petrel {
 namespace lib {
@@ -12,7 +21,6 @@ class metric : public library {
     enum class type { undef, counter, meter, timer };
 
     metric(lib_context* ctx) : library(ctx), m_type(type::undef) {}
-    static void init(lua_State*) {}
 
     /// Register a new counter metric.
     /// p1: string name
@@ -52,6 +60,15 @@ class metric : public library {
 
     /// Increment a counter or meter metric.
     int increment(lua_State* L);
+
+    /// Decrement a counter.
+    int decrement(lua_State* L);
+
+    /// Get the total count of a metric or counter.
+    int total(lua_State* L);
+
+    /// Reset a counter.
+    int reset(lua_State* L);
 
   private:
     type m_type;

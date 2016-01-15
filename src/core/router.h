@@ -71,12 +71,12 @@ class router {
         path_node* next = nullptr;
         ~path_node() {
             if (nullptr != next) {
-                delete next;
+                delete[] next;
             }
         }
     };
 
-    /// A set like structur that is indexing a string by character
+    /// A set like struct that is indexing a string by character
     template <typename Node>
     class path_set {
       public:

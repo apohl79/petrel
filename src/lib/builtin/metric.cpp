@@ -12,6 +12,7 @@
 #include "metrics/counter.h"
 #include "metrics/meter.h"
 #include "server.h"
+#include "make_unique.h"
 
 namespace petrel {
 namespace lib {

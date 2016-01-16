@@ -14,6 +14,7 @@
 #include "log.h"
 #include "options.h"
 #include "fiber_timer.h"
+#include "make_unique.h"
 #include "boost/fiber/yield.hpp"
 
 namespace petrel {
@@ -194,7 +195,7 @@ void server_impl::run_http2_server() {
                                          options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
     }
-    for (auto iosvc : m_http2_server->get_io_services()) {
+    for (auto iosvc : m_http2_server->io_services()) {
         setup_fiber_timer(*iosvc);
     }
     m_http2_server->join();
@@ -229,7 +230,7 @@ void server_impl::run_http2_tls_server() {
                                          options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
     }
-    for (auto iosvc : m_http2_server->get_io_services()) {
+    for (auto iosvc : m_http2_server->io_services()) {
         setup_fiber_timer(*iosvc);
     }
     m_http2_server->join();

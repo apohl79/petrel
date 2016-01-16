@@ -8,6 +8,7 @@
 #include "registry.h"
 #include "options.h"
 #include "resolver_cache.h"
+#include "fiber_timer.h"
 #include "boost/fiber/yield.hpp"
 
 #include <ostream>
@@ -23,18 +24,6 @@ namespace bf = boost::fibers;
 namespace bfa = bf::asio;
 namespace bai = ba::ip;
 namespace bs = boost::system;
-
-inline void timer_handler(ba::high_resolution_timer& timer) {
-    boost::this_fiber::yield();
-    timer.expires_from_now(bf::wait_interval());
-    timer.async_wait(std::bind(timer_handler, std::ref(timer)));
-}
-
-inline void run_service(ba::io_service& io_service) {
-    ba::high_resolution_timer timer(io_service, std::chrono::seconds(0));
-    timer.async_wait(std::bind(timer_handler, std::ref(timer)));
-    io_service.run();
-}
 
 registry::registry(petrel::resolver_cache& resolver)
     : m_log_interval(options::opts["metrics.log"].as<int>()),
@@ -132,7 +121,8 @@ void registry::run() {
         }
     }).detach();
     // Run the io service
-    run_service(m_iosvc);
+    setup_fiber_timer(m_iosvc);
+    m_iosvc.run();
 }
 
 std::ostream& operator<<(std::ostream& os, basic_metric& metric) {

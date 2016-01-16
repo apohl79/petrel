@@ -17,7 +17,7 @@ Build
 ```
 mkdir build
 cd build
-cmake ..
+cmake -DBOOST_ROOT=/usr/local/boost_head ..
 make
 ```
 
@@ -27,32 +27,24 @@ Requirements
 ### Boost
 
 Download:
-- boost (minimum 1.59) (http://www.boost.org/users/download/)
-- boost.fiber (https://github.com/olk/boost-fiber)
+
 ```
-tar xf boost_<version>.tar.bz2
-cd boost_<version>/libs
+git clone git@github.com:boostorg/boost.git
+cd boost/libs
 git clone git@github.com:olk/boost-fiber.git fiber
+cd ..
 ```
 
 Build:
 ```
-./bootstrap.sh
-./b2 cxxflags="-std=c++1y" toolset=gcc threading=multi valgrind=on variant=debug
-```
-Segmented stacks support not yet tested:
-```
-./b2 cxxflags="-std=c++1y" toolset=gcc segmented-stacks=on threading=multi valgrind=on variant=debug
+./bootstrap.sh --prefix=/usr/local/boost_head
+./b2 headers
+./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static segmented-stacks=on
 ```
 
 Install:
 ```
-sudo ./b2 cxxflags="-std=c++1y" toolset=gcc threading=multi valgrind=on variant=debug install
-```
-
-Segmented stacks support not yet tested:
-```
-sudo ./b2 cxxflags="-std=c++1y" toolset=gcc segmented-stacks=on threading=multi valgrind=on variant=debug install
+sudo ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static segmented-stacks=on install
 ```
 
 ### nghttp2
@@ -64,7 +56,10 @@ git clone git@github.com:tatsuhiro-t/nghttp2.git
 
 Build:
 ```
-./configure --enable-asio-lib
+autoreconf -i
+automake
+autoconf
+./configure --with-boost=/usr/local/boost_head --enable-asio-lib
 make
 ```
 
@@ -83,7 +78,7 @@ Build:
 # We have to build lua with C++ support to make it use C++ try/catch
 # instead of longjmp() which breaks boost.fiber context switches
 # (The below works for linux, for OS X you need to patch src/Makefile)
-make linux CC="g++ -std=c++1y"
+make linux CC="g++ -std=c++11"
 ```
 
 Install:

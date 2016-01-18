@@ -4,7 +4,7 @@
  *
  * Author: Andreas Pohl
  *
- * Based of https://github.com/olk/boost-fiber/blob/master/examples/asio/fiber_sched_algorithm.hpp
+ * Based of https://github.com/olk/boost-fiber/blob/master/examples/asio/round_robin.hpp
  */
 
 #ifndef FIBER_SCHED_ALGORITHM_H

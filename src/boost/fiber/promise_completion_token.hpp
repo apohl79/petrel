@@ -55,14 +55,12 @@ public:
     typedef Allocator allocator_type;
 
     /// Construct using default-constructed allocator.
-    BOOST_CONSTEXPR promise_completion_token() :
-        ec_( nullptr) {
-    }
+    constexpr promise_completion_token() = default;
 
     /// Construct using specified allocator.
-    explicit promise_completion_token( Allocator const& allocator) :
-        ec_( nullptr),
-        allocator_( allocator) {
+    explicit promise_completion_token( Allocator const& allocator) noexcept :
+        ec_{ nullptr },
+        allocator_{ allocator } {
     }
 
     /// Obtain allocator.
@@ -72,10 +70,10 @@ public:
 
 //private:
     // used by some subclasses to bind an error_code to suppress exceptions
-    boost::system::error_code   *   ec_;
+    boost::system::error_code   *   ec_{ nullptr };
 
 private:
-    Allocator   allocator_;
+    Allocator   allocator_{};
 };
 //]
 

@@ -30,7 +30,8 @@ find_package(Boost 1.59.0 COMPONENTS
 find_package(OpenSSL REQUIRED)
 find_package(LUA REQUIRED)
 find_package(PkgConfig)
-pkg_check_modules(NGHTTP2 libnghttp2_asio)
+pkg_check_modules(NGHTTP2 libnghttp2)
+pkg_check_modules(NGHTTP2_ASIO libnghttp2_asio)
 
 set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
 
@@ -58,6 +59,11 @@ include_directories(${OPENSSL_INCLUDE_DIRS})
 include_directories(${LUA_INCLUDE_DIR})
 include_directories(${NGHTTP2_INCLUDE_DIRS})
 
+link_directories(${Boost_LIBRARY_DIRS})
+link_directories(${OPENSSL_LIBRARY_DIRS})
+link_directories(${LUA_LIBRARY_DIRS})
+link_directories(${NGHTTP2_LIBRARY_DIRS})
+
 set(LIB_CORE_NAME ${PROJECT_NAME}_core)
 aux_source_directory(core LIB_CORE_SOURCES)
 aux_source_directory(metrics LIB_CORE_SOURCES)
@@ -65,20 +71,31 @@ aux_source_directory(lib/builtin LIB_CORE_SOURCES)
 aux_source_directory(boost/http/src LIB_CORE_SOURCES)
 add_library(${LIB_CORE_NAME} SHARED ${LIB_CORE_SOURCES})
 set_target_properties(${LIB_CORE_NAME} PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION})
+target_link_libraries(${LIB_CORE_NAME} ${NGHTTP2_LIBRARIES})
+target_link_libraries(${LIB_CORE_NAME} ${NGHTTP2_ASIO_LIBRARIES})
+target_link_libraries(${LIB_CORE_NAME} ${Boost_LIBRARIES})
+target_link_libraries(${LIB_CORE_NAME} ${OPENSSL_LIBRARIES})
+target_link_libraries(${LIB_CORE_NAME} dl)
 install(TARGETS ${LIB_CORE_NAME} DESTINATION ${INSTALL_LIB_DIR})
 
 add_executable(${PROJECT_NAME} main.cpp)
 add_dependencies(${PROJECT_NAME} ${LIB_CORE_NAME})
 target_link_libraries(${PROJECT_NAME} ${LIB_CORE_NAME})
-target_link_libraries(${PROJECT_NAME} dl)
-target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${OPENSSL_LIBRARIES})
 target_link_libraries(${PROJECT_NAME} ${LUA_LIBRARIES})
-target_link_libraries(${PROJECT_NAME} ${NGHTTP2_LIBRARIES})
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
 # libraries
 #add_subdirectory(lib/name)
+
+if(SEGMENTED_STACKS STREQUAL "on")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    set(COMP_FLAGS "${COMP_FLAGS} -fsplit-stack -DBOOST_USE_SEGMENTED_STACKS")
+    set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=gold")
+    set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=gold")
+    target_link_libraries(${LIB_CORE_NAME} gcc)
+    target_link_libraries(${PROJECT_NAME} gcc)
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+endif(SEGMENTED_STACKS STREQUAL "on")
 
 # install header files
 file(GLOB HEADERS "core/server.h" "core/log.h" "lib/library.h" "metrics/*.h")

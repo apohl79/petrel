@@ -10,7 +10,7 @@
 #include "server_impl.h"
 #include "options.h"
 #include "log.h"
-#include "fiber_timer.h"
+#include "fiber_sched_algorithm.h"
 #include "boost/fiber/yield.hpp"
 
 namespace petrel {
@@ -34,6 +34,7 @@ void worker::do_accept(tcp::acceptor& acceptor, server& srv) {
         acceptor.async_accept(new_session->socket(), bfa::yield[ec]);
         if (!ec) {
             worker.add_session(new_session);
+            worker.m_new_session_cv.notify_one();
         }
     }
 }
@@ -56,7 +57,7 @@ void worker::add_endpoint(tcp::endpoint& ep) {
 }
 
 void worker::add_session(session::pointer new_session) {
-    std::lock_guard<std::mutex> lock(m_new_session_mtx);
+    std::unique_lock<bf::mutex> lock(m_new_session_mtx);
     m_new_sessions.push_back(new_session);
 }
 
@@ -64,7 +65,18 @@ void worker::run(server& srv) {
     for (auto& acceptor : m_acceptors) {
         bf::fiber(worker::do_accept, std::ref(acceptor), std::ref(srv)).detach();
     }
-    setup_fiber_timer(m_iosvc, [this] { start_new_sessions(); });
+    bf::fiber([this] {
+        while (!m_stop) {
+            std::unique_lock<bf::mutex> lock(m_new_session_mtx);
+            m_new_session_cv.wait(lock);
+            for (auto session : m_new_sessions) {
+                bf::fiber(&session::start, session).detach();
+            }
+            m_new_sessions.clear();
+        }
+    }).detach();
+    // Run the io service
+    bf::use_scheduling_algorithm<fiber_sched_algorithm>(m_iosvc);
     m_iosvc.run();
 }
 
@@ -76,6 +88,9 @@ void worker::join() {
 
 void worker::start(server& srv) { m_thread = std::thread(&worker::run, this, std::ref(srv)); }
 
-void worker::stop() { m_iosvc.stop(); }
+void worker::stop() {
+    m_stop = true;
+    m_iosvc.stop();
+}
 
 }  // petrel

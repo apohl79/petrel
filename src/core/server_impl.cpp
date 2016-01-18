@@ -13,7 +13,7 @@
 #include "session.h"
 #include "log.h"
 #include "options.h"
-#include "fiber_timer.h"
+#include "fiber_sched_algorithm.h"
 #include "make_unique.h"
 #include "boost/fiber/yield.hpp"
 
@@ -112,7 +112,7 @@ void server_impl::set_route(const std::string& path, const std::string& func) {
             log_debug("incomong request: method=" << req.method() << " path='" << req.uri().raw_path << " query='"
                                                   << req.uri().raw_query << "' -> func=" << func);
             // reset the idle counter to stay responsive when we get traffic
-            reset_fiber_idle_counter();
+            fiber_sched_algorithm::reset_idle_counter();
             // total requests
             m_metric_requests->increment();
             // path requests
@@ -150,7 +150,7 @@ void server_impl::set_route(const std::string& path, const std::string& func) {
                                   metric_err](session::request_type::pointer req) {
             log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
             // reset the idle counter to stay responsive when we get traffic
-            reset_fiber_idle_counter();
+            fiber_sched_algorithm::reset_idle_counter();
             // total requests
             m_metric_requests->increment();
             // path requests
@@ -196,7 +196,8 @@ void server_impl::run_http2_server() {
         throw std::runtime_error(ec.message());
     }
     for (auto iosvc : m_http2_server->io_services()) {
-        setup_fiber_timer(*iosvc);
+        // register asio scheduler
+        iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
     }
     m_http2_server->join();
 }
@@ -231,7 +232,8 @@ void server_impl::run_http2_tls_server() {
         throw std::runtime_error(ec.message());
     }
     for (auto iosvc : m_http2_server->io_services()) {
-        setup_fiber_timer(*iosvc);
+        // register asio scheduler
+        iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
     }
     m_http2_server->join();
 }

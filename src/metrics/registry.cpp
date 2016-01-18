@@ -8,14 +8,13 @@
 #include "registry.h"
 #include "options.h"
 #include "resolver_cache.h"
-#include "fiber_timer.h"
+#include "fiber_sched_algorithm.h"
 #include "boost/fiber/yield.hpp"
 
 #include <ostream>
 #include <ctime>
 
 #include <boost/fiber/all.hpp>
-#include <boost/asio/high_resolution_timer.hpp>
 
 namespace petrel {
 namespace metrics {
@@ -121,7 +120,7 @@ void registry::run() {
         }
     }).detach();
     // Run the io service
-    setup_fiber_timer(m_iosvc);
+    bf::use_scheduling_algorithm<fiber_sched_algorithm>(m_iosvc);
     m_iosvc.run();
 }
 

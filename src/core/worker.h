@@ -61,21 +61,15 @@ class worker : boost::noncopyable {
   private:
     ba::io_service m_iosvc;
     std::thread m_thread;
+    std::atomic_bool m_stop{false};
+
     std::vector<session::pointer> m_new_sessions;
-    std::mutex m_new_session_mtx;
+    bf::mutex m_new_session_mtx;
+    bf::condition_variable m_new_session_cv;
 
     std::vector<ba::ip::tcp::acceptor> m_acceptors;
 
     static void do_accept(ba::ip::tcp::acceptor& acceptor, server& srv);
-
-    /// Called from the timer_handler. Start fibers for new sessions.
-    inline void start_new_sessions() {
-        std::lock_guard<std::mutex> lock(m_new_session_mtx);
-        for (auto session : m_new_sessions) {
-            bf::fiber(&session::start, session).detach();
-        }
-        m_new_sessions.clear();
-    }
 };
 
 }  // petrel

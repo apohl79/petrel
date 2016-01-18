@@ -41,7 +41,7 @@ Requirements
 
 Download:
 ```
-git clone git@github.com:boostorg/boost.git
+git clone --recursive git@github.com:boostorg/boost.git
 cd boost/libs
 git clone git@github.com:olk/boost-fiber.git fiber
 cd ..

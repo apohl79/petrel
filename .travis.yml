@@ -63,8 +63,13 @@ before_script:
  - pushd "libs"
  - git clone https://github.com/olk/boost-fiber.git fiber
  - popd
+<<<<<<< HEAD
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC=$(which $CXX); fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; fi
+=======
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC49=$(which g++-4.9); fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC49 ;" > user-config.jam; fi
+>>>>>>> 275337952cc90df69100a6c2d80eea59b31cf687
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
  - ./b2 -q -d0 headers
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi

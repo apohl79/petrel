@@ -30,18 +30,19 @@ matrix:
           sources:
             - ubuntu-toolchain-r-test
 
-    - os: linux
-      env: USE_CC=clang-3.5 USE_CXX=clang++-3.5
-      addons: &clang35
-        apt:
-          packages:
-            - clang-3.5
-          sources:
-            - llvm-toolchain-precise-3.5
-            - ubuntu-toolchain-r-test
-      install:
-        - sudo apt-get update -qq
-        - sudo apt-get install -qq g++-4.9
+# boost.fiber does not compile with clang 3.5 atm
+#    - os: linux
+#      env: USE_CC=clang-3.5 USE_CXX=clang++-3.5
+#      addons: &clang35
+#        apt:
+#          packages:
+#            - clang-3.5
+#          sources:
+#            - llvm-toolchain-precise-3.5
+#            - ubuntu-toolchain-r-test
+#      install:
+#        - sudo apt-get update -qq
+#        - sudo apt-get install -qq g++-4.9
 
     - os: linux
       env: USE_CC=clang-3.6 USE_CXX=clang++-3.6
@@ -64,9 +65,9 @@ before_script:
  - git clone https://github.com/olk/boost-fiber.git fiber
  - popd
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC=$(which $CXX); fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
- - ./b2 -q -d0 headers
+ - ./b2 -q -d0 --debug-configuration headers
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
  - popd
  - git clone https://github.com/tatsuhiro-t/nghttp2.git

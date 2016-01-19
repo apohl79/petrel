@@ -1,3 +1,4 @@
+language: cpp
 sudo: required
 dist: trusty
 notifications:
@@ -57,15 +58,27 @@ matrix:
 
 before_install:
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone --recursive https://github.com/boostorg/boost.git; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export BOOST_ROOT="$(pwd)/boost_root"; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "boost"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=${BOOST_ROOT} --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; ./b2 headers; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "libs"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone https://github.com/olk/boost-fiber.git fiber; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./b2 headers; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone https://github.com/tatsuhiro-t/nghttp2.git; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "nghttp2"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then autoreconf -i && automake && autoconf; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./configure --with-boost=/usr/local/boost_head --enable-asio-lib; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo make install; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "lua-5.3.2"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then make linux CC="g++ -std=c++11"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo make install; fi
 
 script:
   - mkdir build && cd build
-  - cmake -DBOOST_ROOT="${BOOST_ROOT}" ..
+  - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - export CTEST_OUTPUT_ON_FAILURE=TRUE
   - make && ctest

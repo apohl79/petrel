@@ -49,7 +49,7 @@ cd ..
 
 Build / Install:
 ```
-./bootstrap.sh --prefix=/usr/local/boost_head
+./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test
 ./b2 headers
 sudo ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static install
 ```

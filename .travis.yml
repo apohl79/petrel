@@ -1,0 +1,71 @@
+sudo: required
+dist: trusty
+notifications:
+  on_success: change
+  on_failure: always
+  on_start: false
+
+matrix:
+  include:
+    - os: linux
+      env: CC=gcc-4.9 CXX=g++-4.9
+      addons: &gcc49
+        apt:
+          packages:
+            - libstdc++-5-dev
+          sources:
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9
+
+    - os: linux
+      env: CC=gcc-5 CXX=g++-5
+      addons: &gcc5
+        apt:
+          packages:
+            - g++-5
+            - libstdc++-5-dev
+          sources:
+            - ubuntu-toolchain-r-test
+
+    - os: linux
+      env: CC=clang-3.5 CXX=clang++-3.5
+      addons: &clang35
+        apt:
+          packages:
+            - clang-3.5
+          sources:
+            - llvm-toolchain-precise-3.5
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9
+
+    - os: linux
+      env: CC=clang-3.6 CXX=clang++-3.6
+      addons: &clang36
+        apt:
+          packages:
+            - clang-3.6
+          sources:
+            - llvm-toolchain-precise-3.6
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9
+
+before_install:
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone --recursive https://github.com/boostorg/boost.git; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export BOOST_ROOT="$(pwd)/boost_root"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "boost"; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=${BOOST_ROOT} --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; ./b2 headers; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
+
+script:
+  - mkdir build && cd build
+  - cmake -DBOOST_ROOT="${BOOST_ROOT}" ..
+  - export CTEST_OUTPUT_ON_FAILURE=TRUE
+  - make && ctest

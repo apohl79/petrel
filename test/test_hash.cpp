@@ -10,14 +10,11 @@
 
 #include <boost/utility/string_ref.hpp>
 
-#define BOOST_TEST_MODULE test_hash
-//#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace petrel;
 using namespace petrel::lib;
-
-BOOST_AUTO_TEST_SUITE(test_hash_suite);
 
 BOOST_AUTO_TEST_CASE(test_md5) {
     lua_engine e;
@@ -78,5 +75,3 @@ BOOST_AUTO_TEST_CASE(test_fnv) {
     BOOST_CHECK(ret == 1012600862);
     e.destroy_lua_state(Lex);
 }
-
-BOOST_AUTO_TEST_SUITE_END();

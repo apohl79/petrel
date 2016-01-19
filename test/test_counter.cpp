@@ -9,13 +9,10 @@
 #include <ctime>
 #include "counter.h"
 
-#define BOOST_TEST_MODULE test_counter
-//#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace petrel::metrics;
-
-BOOST_AUTO_TEST_SUITE(test_counter_suite);
 
 
 BOOST_AUTO_TEST_CASE(test_count) {
@@ -42,5 +39,3 @@ BOOST_AUTO_TEST_CASE(test_count) {
     BOOST_CHECK(c.get() == 0);
     BOOST_CHECK(x == 50);
 }
-
-BOOST_AUTO_TEST_SUITE_END();

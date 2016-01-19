@@ -7,13 +7,10 @@
 
 #include "router.h"
 
-#define BOOST_TEST_MODULE test_router
-//#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
 
 using namespace petrel;
-
-BOOST_AUTO_TEST_SUITE(test_router_suite);
 
 void find_and_exec(router& r, const std::string& p) {
     auto& f = r.find_route_http(p);
@@ -48,5 +45,3 @@ BOOST_AUTO_TEST_CASE(test_set_find) {
     find_and_exec(r, "/xxx");
     BOOST_CHECK_MESSAGE(r1, "/xxx not mapped to route /");
 }
-
-BOOST_AUTO_TEST_SUITE_END();

@@ -20,6 +20,10 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(COMP_FLAGS "${COMP_FLAGS} -fdiagnostics-color=auto")
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
+if(NOT Boost_USE_STATIC_LIBS)
+  set(COMP_FLAGS "${COMP_FLAGS} -DBOOST_TEST_DYN_LINK")
+endif()
+
 set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11")
 

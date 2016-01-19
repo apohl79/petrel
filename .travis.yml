@@ -65,7 +65,7 @@ before_install:
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo "using gcc : : /usr/bin/g++-4.9 ;" > user-config.jam; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
  - ./b2 -q -d0 headers
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
  - popd
  - git clone https://github.com/tatsuhiro-t/nghttp2.git
  - pushd "nghttp2"

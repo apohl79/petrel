@@ -57,25 +57,26 @@ matrix:
         - sudo apt-get install -qq g++-4.9
 
 before_install:
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone --recursive https://github.com/boostorg/boost.git; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "boost"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "libs"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone https://github.com/olk/boost-fiber.git fiber; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
+ - git clone --recursive https://github.com/boostorg/boost.git
+ - pushd "boost"
+ - pushd "libs"
+ - git clone https://github.com/olk/boost-fiber.git fiber
+ - popd
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo "using gcc : : /usr/bin/g++-4.9 ;" > user-config.jam; fi
  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./b2 headers; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then git clone https://github.com/tatsuhiro-t/nghttp2.git; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "nghttp2"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then autoreconf -i && automake && autoconf; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./configure --with-boost=/usr/local/boost_head --enable-asio-lib; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo make install; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then popd; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then pushd "lua-5.3.2"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then make linux CC="g++ -std=c++11"; fi
- - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo make install; fi
+ - ./b2 -q -d0 headers
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+ - popd
+ - git clone https://github.com/tatsuhiro-t/nghttp2.git
+ - pushd "nghttp2"
+ - autoreconf -i && automake && autoconf
+ - ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
+ - sudo make install
+ - popd
+ - curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz
+ - pushd "lua-5.3.2"
+ - if [ "$TRAVIS_OS_NAME" = "linux" ]; then make linux CC="g++-4.9 -std=c++11"; fi
+ - sudo make install
 
 script:
   - mkdir build && cd build

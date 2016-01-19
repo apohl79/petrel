@@ -92,6 +92,11 @@ class lua_engine : boost::noncopyable {
     /// Print out all registered libs
     static void print_registered_libs();
 
+    /// Create a new lua state
+    lua_state_ex create_lua_state();
+    /// Destroy a lua state
+    void destroy_lua_state(lua_state_ex L);
+
     /// Dump the stack of a lua state
     static void dump_stack(lua_State* L);
     /// Print a lua type at the given stack index
@@ -117,10 +122,6 @@ class lua_engine : boost::noncopyable {
     /// Vector for all libs
     static std::vector<lib_reg> m_libs;
 
-    /// Create a new lua state
-    lua_state_ex create_lua_state();
-    /// Destroy a lua state
-    void destroy_lua_state(lua_state_ex L);
     /// Fill the lua state buffer
     void fill_lua_state_buffer();
     /// Get a lua state from the pool.

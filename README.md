@@ -1,6 +1,8 @@
 Petrel
 ======
 
+[![Build Status](https://travis-ci.org/apohl79/petrel.svg?branch=master)](https://travis-ci.org/apohl79/petrel)
+
 What is Petrel?
 ---------------
 
@@ -17,7 +19,7 @@ Build Instructions
 Download:
 
 ```
-git clone --recursive git@github.com:apohl79/petrel.git
+git clone --recursive https://github.com/apohl79/petrel.git
 ```
 
 Build / Install:
@@ -41,9 +43,9 @@ Requirements
 
 Download:
 ```
-git clone --recursive git@github.com:boostorg/boost.git
+git clone --recursive https://github.com/boostorg/boost.git
 cd boost/libs
-git clone git@github.com:olk/boost-fiber.git fiber
+git clone https://github.com/olk/boost-fiber.git fiber
 cd ..
 ```
 
@@ -64,14 +66,12 @@ sudo ./b2 cxxflags="-std=c++11 -fPIC" threading=multi link=static segmented-stac
 
 Download:
 ```
-git clone git@github.com:tatsuhiro-t/nghttp2.git
+git clone https://github.com/tatsuhiro-t/nghttp2.git
 ```
 
 Build / Install:
 ```
-autoreconf -i
-automake
-autoconf
+autoreconf -i && automake && autoconf
 ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
 make
 sudo make install
@@ -94,7 +94,7 @@ Download:
 Build / Install:
 ```
 tar xf lua-<version>.tar.gz
-cd lua-version
+cd lua-<version>
 
 # We have to build lua with C++ support to make it use C++ try/catch
 # instead of longjmp() which breaks boost.fiber context switches

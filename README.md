@@ -8,7 +8,7 @@ What is Petrel?
 
 - A framework for rapid development of micro/web services
 - A web server with HTTP/1 and HTTP/2 support including SSL
-- Combines Fibers with LUA
+- Combines fibers with LUA
 - Provides a C++ library interface to implement performance critical code
 - Provides a LUA framework to implement business logic
 - Easy to extend

@@ -15,7 +15,7 @@
 
     <header>
       <div class="container">
-        <h1>petrel</h1>
+        <h1><a href="index.html">petrel</a></h1>
         <h2>An HTTP/1 and HTTP/2 webserver providing a C++/lua framework for easy micro/web service development.</h2>
 
         <section id="downloads">
@@ -46,27 +46,27 @@
   <li>syslog: logging base (posix syslog or console via std)</li>
 </ul>
 
-<h4><a id="core" class="anchor" href="#core" aria-hidden="true"><span class="octicon octicon-link"></span></a>Petrel core.</h3>
+<h3><a id="core" class="anchor" href="#core" aria-hidden="true"><span class="octicon octicon-link"></span></a>Petrel core.</h3>
 
 <p>The core layer is responsible for running the web server and executing the lua code and it's interaction with native code. It provides:</p>
 
 <ul>
-  <li>HTTP server: setting up an http/http2 server, loading the handler routing table (router)</li>
+  <li>HTTP server: setting up an http/http2 server, loading the handler routing table (router) and routing requests to the installed request handlers</li>
   <li>Lua environment: loading builtin and external native libraries, loading/executing the users lua code</li>
   <li>Metrics: providing a metrics interface (registry) and metrics implementations (meter, timer, counter)</li>
   <li>DNS cache: a boost resolver compatible interface to cache DNS lookups</li>
   <li>Logging: interface for level based logging to the console or syslog</li>
 </ul>
 
-<h4><a id="libs" class="anchor" href="#libs" aria-hidden="true"><span class="octicon octicon-link"></span></a>C++ libraries.</h3>
+<h3><a id="libs" class="anchor" href="#libs" aria-hidden="true"><span class="octicon octicon-link"></span></a>C++ libraries.</h3>
 
 <p>Based on the core layer petrel provides several builtin libraries to configure petrel itself (setup routes, load external libraries), metrics, logging etc. A user can implement native libraries and load them into the lua environment.</p>
 
-<h4><a id="libs_interface" class="anchor" href="#libs_interface" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua library interface.</h3>
+<h3><a id="libs_interface" class="anchor" href="#libs_interface" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua library interface.</h3>
 
 <p>The library interface makes it easy to extent petrels functionality. Libraries will be implemented in C++ and get linked to shared objects which can be loaded by petrel during the bootstrap phase. The lua engine will expose all builtin and external libraries to the lua environment to make them available to the users lua code.</p>
 
-<h4><a id="lua" class="anchor" href="#lua" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua business logic.</h3>
+<h3><a id="lua" class="anchor" href="#lua" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua business logic.</h3>
 
 <p>The highest layer is entirely based on the users code. The services behavior will be implemented in lua. The environment is restricted (no network/disk IO, no system calls, no coroutines) to keep the business logic as simple as possible. If functionality is missing a user can implement his own native extensions or lua modules.</p>
 
@@ -74,7 +74,7 @@
 
 <p>Each request runs in its own fiber and in an isolated lua state. If a user needs to share data between requests, (s)he has to go through a native library and needs to make sure the library is thread safe.</p>
 
-<p>Lua states live in a state buffer and get pre-created asynchronously. The diagram below show the request processing chain.</p>
+<p>Lua states live in a state buffer and get pre-created asynchronously. The diagram below shows the request processing chain.</p>
 
 <p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-request.png" alt="petrel request processing"></p>
 

@@ -13,6 +13,8 @@ What is Petrel?
 - Provides a LUA framework to implement business logic
 - Easy to extend
 
+Read more on the [website...](http://apohl79.github.io/petrel/)
+
 Build Instructions
 ------------------
 

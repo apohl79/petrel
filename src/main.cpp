@@ -10,7 +10,7 @@
 #include "log.h"
 #include "options.h"
 
-int main(int argc, char** argv) {
+int main(int argc, const char** argv) {
     // Parse command line
     if (!petrel::options::parse(argc, argv)) {
         return 1;
@@ -30,17 +30,14 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    std::clog.rdbuf(new petrel::log("petrel", LOG_LOCAL0, petrel::options::opts.count("log.syslog"),
-                                    petrel::options::opts["log.level"].as<int>()));
-    std::clog << std::fixed << std::setprecision(2);
-
-    set_log_tag("main");
+    petrel::log::init(petrel::options::opts.count("log.syslog"), petrel::options::opts["log.level"].as<int>());
 
     try {
         petrel::server s;
         s.impl()->init();
         s.impl()->run();
     } catch (std::exception& e) {
+        set_log_tag("main");
         log_emerg(e.what());
         return 1;
     }

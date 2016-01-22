@@ -85,6 +85,10 @@ class log : public std::basic_streambuf<char, std::char_traits<char> > {
         }
     }
     static constexpr int to_int(const log_priority& priority) noexcept { return static_cast<int>(priority); }
+    static void init(bool syslog = false, int priority = 7) {
+        std::clog.rdbuf(new log("petrel", LOG_LOCAL0, syslog, priority));
+        std::clog << std::fixed << std::setprecision(2);
+    }
     static bool m_syslog;
     static int m_filter_priority;
 

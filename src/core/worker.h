@@ -32,7 +32,7 @@ class worker : boost::noncopyable {
     set_log_tag_default_priority("worker");
 
     /// Ctor.
-    worker() {}
+    worker() : m_work(m_iosvc) {}
 
     /// Dtor.
     ~worker();
@@ -60,6 +60,7 @@ class worker : boost::noncopyable {
 
   private:
     ba::io_service m_iosvc;
+    ba::io_service::work m_work;
     std::thread m_thread;
     std::atomic_bool m_stop{false};
 

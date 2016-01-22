@@ -43,7 +43,13 @@ class server_impl: boost::noncopyable {
     server_impl(server* srv);
 
     /// Run the server and block.
-    void run();
+    void run(bool async = false);
+
+    /// Join the server if it was started in async mode.
+    void join();
+
+    /// Stop the server.
+    void stop();
 
     /// Load lua scripts, call bootstrap etc
     void init();
@@ -79,11 +85,14 @@ class server_impl: boost::noncopyable {
 
   private:
     /// Pointer to the server wrapper object
-    server* m_server = nullptr;
+    server* m_server;
 
     int m_num_workers;
     std::vector<std::unique_ptr<worker>> m_workers;
     std::atomic<std::size_t> m_next_worker{0};
+
+    std::function<void()> m_join_func;
+    std::function<void()> m_stop_func;
 
     lua_engine m_lua_engine;
     resolver_cache m_resolver_cache;
@@ -99,8 +108,8 @@ class server_impl: boost::noncopyable {
     metrics::meter::pointer m_metric_errors;
     metrics::timer::pointer m_metric_times;
 
-    void run_http2_server();
-    void run_http2_tls_server();
+    void run_http2_server(bool async = false);
+    void run_http2_tls_server(bool async = false);
 };
 
 } // petrel

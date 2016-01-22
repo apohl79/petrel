@@ -8,6 +8,7 @@
 #ifndef SERVER_H
 #define SERVER_H
 
+#include <memory>
 #include <boost/core/noncopyable.hpp>
 
 namespace petrel {
@@ -39,10 +40,10 @@ class server : boost::noncopyable {
     metrics::registry& get_metrics_registry();
 
     /// Internal use
-    server_impl* impl() { return m_impl; }
+    server_impl* impl() { return m_impl.get(); }
 
   private:
-    server_impl* m_impl = nullptr;
+    std::unique_ptr<server_impl> m_impl;
 };
 
 }  // petrel

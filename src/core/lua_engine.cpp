@@ -55,14 +55,14 @@ lua_engine::lua_engine() {
 }
 
 lua_engine::~lua_engine() {
-    if (m_states_watcher.joinable()) {
-        m_states_watcher.join();
-    }
+    stop();
+    join();
     for (auto& lib : m_libs) {
         if (nullptr != lib.unload_func) {
             lib.unload_func();
         }
     }
+    m_libs.clear();
 }
 
 void lua_engine::print_registered_libs() {
@@ -87,6 +87,12 @@ void lua_engine::start(server& srv) {
 }
 
 void lua_engine::stop() { m_stop = true; }
+
+void lua_engine::join() {
+    if (m_states_watcher.joinable()) {
+        m_states_watcher.join();
+    }
+}
 
 void lua_engine::fill_lua_state_buffer() {
     int buffer_size = options::opts["lua.statebuffer"].as<int>();
@@ -139,15 +145,10 @@ lua_state_ex lua_engine::create_lua_state() {
     // Initialize libs
     load_libs(Lex.L);
 
-    // Remove functions we don't want to be accessable
-    // lua_pushnil(Lex.L);
-    // lua_setglobal(Lex.L, "print");
-
-    // Load lua scripts
-    std::lock_guard<std::mutex> lock(m_scripts_mtx);
-    for (auto& s : m_scripts) {
-        load_script(Lex.L, s);
-    }
+    // Load the user code
+    Lex.code_version = m_code_version;
+    load_code_from_scripts(Lex.L);
+    load_code_from_buffer(Lex.L);
 
     // Install traceback
     lua_pushcfunction(Lex.L, traceback);
@@ -177,10 +178,6 @@ void lua_engine::destroy_lua_state(lua_state_ex L) {
     }
 }
 
-void lua_engine::reload_lua_scripts() {
-    // TODO: implement
-}
-
 lua_state_ex lua_engine::get_lua_state() {
     lua_state_ex Lex;
     {
@@ -188,37 +185,50 @@ lua_state_ex lua_engine::get_lua_state() {
         if (!m_states.empty()) {
             Lex = m_states.back();
             m_states.pop_back();
-            m_statebuffer_counter->decrement();
-            if (m_dev_mode) {
-                try {
-                    std::lock_guard<std::mutex> lock(m_scripts_mtx);
-                    for (auto& s : m_scripts) {
-                        load_script(Lex.L, s);
-                    }
-                } catch (std::runtime_error& e) {
-                    log_err("failed to reload scripts: " << e.what());
-                }
-            }
         }
     }
     if (nullptr == Lex.L) {
-        log_warn("creating a lua state in the request handler, you need to increase the lua.statebuffer value!");
+        log_warn("creating a lua state in the request handler, you should increase the lua.statebuffer value!");
         Lex = create_lua_state();
         m_states_counter->increment();
+    } else {
+        m_statebuffer_counter->decrement();
+        if (m_dev_mode) {
+            try {
+                load_code_from_scripts(Lex.L);
+                load_code_from_buffer(Lex.L);
+            } catch (std::runtime_error& e) {
+                log_err("failed to reload scripts: " << e.what());
+            }
+        }
     }
     return Lex;
 }
 
-void lua_engine::free_lua_state(lua_state_ex L) {
+void lua_engine::free_lua_state(lua_state_ex L, bool reload_in_new_thread) {
     if (nullptr != L.ctx->p_objects) {
         for (auto* obj : *L.ctx->p_objects) {
             delete obj;
         }
         L.ctx->p_objects->clear();
     }
-    m_statebuffer_counter->increment();
-    std::lock_guard<std::mutex> lock(m_states_mtx);
-    m_states.push_back(L);
+    if (L.code_version != m_code_version) {
+        auto f = [this, L] () mutable {
+            L.code_version = m_code_version;
+            load_code_from_scripts(L.L);
+            load_code_from_buffer(L.L);
+            free_lua_state(L, false /* we are in a separate thread already */);
+        };
+        if (reload_in_new_thread) {
+            std::thread(f).detach();
+        } else {
+            f();
+        }
+    } else {
+        m_statebuffer_counter->increment();
+        std::lock_guard<std::mutex> lock(m_states_mtx);
+        m_states.push_back(L);
+    }
 }
 
 void lua_engine::load_libs(lua_State* L) {
@@ -258,12 +268,6 @@ void lua_engine::set_lua_scripts(std::vector<std::string> scripts) {
     m_scripts = std::move(scripts);
 }
 
-void lua_engine::load_script(lua_State* L, const std::string& script) {
-    if (luaL_dofile(L, script.c_str())) {
-        throw std::runtime_error(lua_tostring(L, -1));
-    }
-}
-
 int lua_engine::register_lib(const std::string& name, lua_CFunction open_func, lua_CFunction init_func,
                              lib_load_func_type load_func, lib_load_func_type unload_func) {
     m_libs.push_back(lib_reg(name, open_func, init_func, unload_func));
@@ -271,6 +275,79 @@ int lua_engine::register_lib(const std::string& name, lua_CFunction open_func, l
         load_func();
     }
     return 0;
+}
+
+void lua_engine::add_lua_code_to_buffer(const std::string& code) {
+    std::lock_guard<std::mutex> lock(m_code_buffer_mtx);
+    m_code_buffer.push_back(code);
+}
+
+void lua_engine::clear_code_buffer() {
+    std::lock_guard<std::mutex> lock(m_code_buffer_mtx);
+    m_code_buffer.clear();
+}
+
+void lua_engine::load_code_from_scripts(lua_State* L) {
+    std::lock_guard<std::mutex> lock(m_scripts_mtx);
+    for (auto& s : m_scripts) {
+        load_code_from_file(L, s);
+    }
+}
+
+void lua_engine::load_code_from_buffer(lua_State* L) {
+    std::lock_guard<std::mutex> lock(m_code_buffer_mtx);
+    for (auto& c : m_code_buffer) {
+        load_code_from_string(L, c);
+    }
+}
+
+void lua_engine::load_code_from_file(lua_State* L, const std::string& script) {
+    if (luaL_dofile(L, script.c_str())) {
+        throw std::runtime_error(lua_tostring(L, -1));
+    }
+}
+
+void lua_engine::load_code_from_string(lua_State* L, const std::string& code) {
+    if (luaL_dostring(L, code.c_str())) {
+        throw std::runtime_error(lua_tostring(L, -1));
+    }
+}
+
+void lua_engine::reload_lua_code() {
+    if (!m_code_reloading.exchange(true)) {
+        log_info("triggering code reload");
+        std::thread([this] {
+            m_code_version++;
+            std::size_t count = 0;
+            while (true) {
+                lua_state_ex Lex;
+                {
+                    std::lock_guard<std::mutex> lock(m_states_mtx);
+                    if (!m_states.empty()) {
+                        Lex = m_states.front();
+                        m_states.erase(m_states.begin());
+                    } else {
+                        break;
+                    }
+                }
+                if (Lex.code_version == m_code_version) {
+                    // found a state with the new version, we can stop
+                    break;
+                }
+                Lex.code_version = m_code_version;
+                load_code_from_scripts(Lex.L);
+                load_code_from_buffer(Lex.L);
+                free_lua_state(Lex);
+                count++;
+                // keep the impact to processing requests low
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
+            }
+            log_info("code reload complete: " << count << " states updated");
+            m_code_reloading = false;
+        }).detach();
+    } else {
+        log_warn("not triggering code reload as a reload is in progess");
+    }
 }
 
 void lua_engine::print_type(lua_State* L, int i, log_priority prio, bool show_type_name, bool show_table_content) {
@@ -545,6 +622,8 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
         log_throw(L, path, {"response.content is no string"});
     }
     std::string data = lua_tostring(L, -1);
+    hm.emplace(
+        std::make_pair(std::string("content-length"), http2::header_value{std::to_string(data.length()), false}));
     res.write_head(status, std::move(hm));
     res.end(std::move(data));
     // Clean up (remove return value and the traceback)

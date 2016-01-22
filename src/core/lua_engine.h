@@ -55,6 +55,7 @@ struct lua_state_ex {
     lua_State* L = nullptr;
     int traceback_idx = 0;
     lib::lib_context* ctx = nullptr;
+    std::uint_fast64_t code_version = 0;
 };
 
 class server;
@@ -72,10 +73,22 @@ class lua_engine : boost::noncopyable {
     void start(server& srv);
     /// Stop the lua engine.
     void stop();
+    /// Stop the lua engine.
+    void join();
     /// Assign a list of lua scripts. Running lua states get updated.
     void set_lua_scripts(std::vector<std::string> scripts);
-    /// Reload lua scripts in all lua states
-    void reload_lua_scripts();
+    /// Reload lua scripts and the code buffer in all lua states
+    void reload_lua_code();
+    /// Add lua code from a string
+    void add_lua_code_to_buffer(const std::string& code);
+    /// Reset the code buffer
+    void clear_code_buffer();
+
+    /// Load a lua script into the code buffer
+    static void load_code_from_file(lua_State* L, const std::string& script);
+    /// Load lua code from the string into the given lua state
+    static void load_code_from_string(lua_State* L, const std::string& code);
+
     /// Call the bootstrap function in lua to setup the server
     void bootstrap(server& srv);
     /// Handle an incoming http request
@@ -109,32 +122,51 @@ class lua_engine : boost::noncopyable {
     static void print_table(lua_State* L, int i, log_priority prio);
 
   private:
-    std::mutex m_scripts_mtx;
+    /// List of script filenames to be loaded
     std::vector<std::string> m_scripts;
-    std::mutex m_states_mtx;
+    std::mutex m_scripts_mtx;
+
+    /// The state buffer
     std::vector<lua_state_ex> m_states;
+    std::mutex m_states_mtx;
     metrics::counter::pointer m_states_counter;
     metrics::counter::pointer m_statebuffer_counter;
     std::thread m_states_watcher;
+
+
+    /// Termination flag
     std::atomic_bool m_stop{false};
+
+    /// In dev mode the scripts get reloaded on every request
     bool m_dev_mode = false;
 
-    /// Vector for all libs
+    /// Vector for all libs to be loaded
     static std::vector<lib_reg> m_libs;
+
+    /// The code version gets incremented with each code reload and is used to verify if a lua state has the latest code
+    /// version loaded.
+    std::atomic_uint_fast64_t m_code_version{0};
+    std::atomic_bool m_code_reloading{false};
+
+    /// The code buffer contains all user lua code that gets loaded for request processing
+    std::vector<std::string> m_code_buffer;
+    std::mutex m_code_buffer_mtx;
 
     /// Fill the lua state buffer
     void fill_lua_state_buffer();
     /// Get a lua state from the pool.
     lua_state_ex get_lua_state();
     /// Return a state object to the pool.
-    void free_lua_state(lua_state_ex L);
+    void free_lua_state(lua_state_ex L, bool reload_in_new_thread = true);
 
     /// Initialize libraries
     void load_libs(lua_State* L);
     /// Initialize library
     int load_lib(const lib_reg& lib, lua_State* L);
-    /// Load a lua script into the current threads lua state
-    void load_script(lua_State* L, const std::string& script);
+    /// Load lua code from the list of scripts into the given lua state
+    void load_code_from_scripts(lua_State* L);
+    /// Load lua code from the code buffer into the given lua state
+    void load_code_from_buffer(lua_State* L);
 
     /// Create a cookie table on the given lua state
     void push_cookies(lua_State* L, const std::string& cookies);

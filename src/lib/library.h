@@ -13,10 +13,12 @@
 #include <vector>
 
 namespace petrel {
+
+class server;
+
 namespace lib {
 
 class library;
-class server;
 
 struct lib_context {
     // The server

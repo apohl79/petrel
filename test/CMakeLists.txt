@@ -38,25 +38,22 @@ link_directories(${OPENSSL_LIBRARY_DIRS})
 link_directories(${LUA_LIBRARY_DIRS})
 link_directories(${NGHTTP2_LIBRARY_DIRS})
 
-add_executable(test_counter test_counter.cpp)
-target_link_libraries(test_counter
-  ${Boost_LIBRARIES})
-add_test(test_counter test_counter)
+macro(add_test_target target)
+  add_executable(${target} ${target}.cpp)
+  target_link_libraries("${target}"
+    petrel_core
+    ${Boost_LIBRARIES}
+    ${OPENSSL_LIBRARIES}
+    ${NGHTTP2_LIBRARIES}
+    ${NGHTTP2_ASIO_LIBRARIES}
+    ${LUA_LIBRARIES}
+    pthread)
+  add_test(${target} ${target})
+endmacro()
 
-add_executable(test_router test_router.cpp)
-target_link_libraries(test_router
-  ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${NGHTTP2_LIBRARIES}
-  ${NGHTTP2_ASIO_LIBRARIES}
-  pthread)
-add_test(test_router test_router)
-
-add_executable(test_hash test_hash.cpp)
-target_link_libraries(test_hash
-  petrel_core
-  ${Boost_LIBRARIES}
-  ${OPENSSL_LIBRARIES}
-  ${NGHTTP2_LIBRARIES}
-  ${LUA_LIBRARIES})
-add_test(test_hash test_hash)
+file(GLOB tests "test_*.cpp")
+foreach(test ${tests})
+  string(REGEX REPLACE ".cpp" "" test_name ${test})
+  string(REGEX REPLACE "${CMAKE_CURRENT_SOURCE_DIR}/" "" test_name ${test_name})
+  add_test_target(${test_name})
+endforeach()

@@ -18,7 +18,7 @@ class options {
   public:
     static bpo::variables_map opts;
     static bpo::options_description desc;
-    static bool parse(int argc, char** argv);
+    static bool parse(int argc, const char** argv);
 };
 
 }  // petrel

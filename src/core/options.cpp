@@ -16,7 +16,7 @@ namespace petrel {
 bpo::variables_map options::opts;
 bpo::options_description options::desc;
 
-bool options::parse(int argc, char** argv) {
+bool options::parse(int argc, const char** argv) {
     // clang-format off
     bpo::options_description desc_help("General options");
     desc_help.add_options()

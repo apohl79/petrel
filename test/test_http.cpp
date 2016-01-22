@@ -9,7 +9,7 @@
 #include "server_impl.h"
 #include "options.h"
 #include "fiber_sched_algorithm.h"
-#include "builtin/http2_client.h"
+#include "builtin/http_client.h"
 
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>

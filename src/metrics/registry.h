@@ -43,6 +43,7 @@ class registry : boost::noncopyable {
     typename T::pointer register_metric(const std::string& name) {
         auto metric = get_metric<T>(name);
         if (nullptr == metric) {
+            log_debug("new metric: " << name);
             metric = std::make_shared<T>();
             m_metrics[name] = metric;
             m_new_metrics.push(metric);

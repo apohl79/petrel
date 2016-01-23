@@ -109,4 +109,4 @@ script:
   - echo "  exit 1" >> runtest.sh
   - echo "fi" >> runtest.sh
   - cat runtest.sh
-  - sh runtest.sh
+  - bash runtest.sh

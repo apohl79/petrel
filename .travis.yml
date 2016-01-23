@@ -97,4 +97,16 @@ script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - make
-  - errors=0; count=0; for t in test/test_*; do let count=$count+1; echo -e "\nTest #$count ($t)"; $t; let errors=$errors+$?; done; echo -e "\n$errors out of $count tests failed"; if [ $error -gt 0 ]; then false; fi
+  - echo "errors=0; count=0" > runtest.sh
+  - echo "for t in test/test_*; do" >> runtest.sh
+  - echo "  let count=$count+1" >> runtest.sh
+  - echo "  echo -e \"\nTest #$count ($t)\"" >> runtest.sh
+  - echo "  $t" >> runtest.sh
+  - echo "  let errors=$errors+$?" >> runtest.sh
+  - echo "done" >> runtest.sh
+  - echo "echo -e \"\n$errors out of $count tests failed\"" >> runtest.sh
+  - echo "if [ $error -gt 0 ]; then" >> runtest.sh
+  - echo "  exit 1" >> runtest.sh
+  - echo "fi" >> runtest.sh
+  - cat runtest.sh
+  - sh runtest.sh

@@ -23,18 +23,18 @@ matrix:
         - sudo apt-get update -qq
         - sudo apt-get install -qq g++-4.9 gdb
 
-    #- os: linux
-    #  env: USE_CC=gcc-5 USE_CXX=g++-5
-    #  addons: &gcc5
-    #    apt:
-    #      packages:
-    #        - g++-5
-    #        - libstdc++-5-dev
-    #      sources:
-    #        - ubuntu-toolchain-r-test
-    #  install:
-    #    - sudo apt-get update -qq
-    #    - sudo apt-get install -qq g++-4.9
+    - os: linux
+      env: USE_CC=gcc-5 USE_CXX=g++-5
+      addons: &gcc5
+        apt:
+          packages:
+            - g++-5
+            - libstdc++-5-dev
+          sources:
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9
 
 # boost.fiber does not compile with clang 3.5 atm
 #    - os: linux
@@ -50,18 +50,18 @@ matrix:
 #        - sudo apt-get update -qq
 #        - sudo apt-get install -qq g++-4.9
 
-    #- os: linux
-    #  env: USE_CC=clang-3.6 USE_CXX=clang++-3.6
-    #  addons: &clang36
-    #    apt:
-    #      packages:
-    #        - clang-3.6
-    #      sources:
-    #        - llvm-toolchain-precise-3.6
-    #        - ubuntu-toolchain-r-test
-    #  install:
-    #    - sudo apt-get update -qq
-    #    - sudo apt-get install -qq g++-4.9
+    - os: linux
+      env: USE_CC=clang-3.6 USE_CXX=clang++-3.6
+      addons: &clang36
+        apt:
+          packages:
+            - clang-3.6
+          sources:
+            - llvm-toolchain-precise-3.6
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9
 
 before_script:
  - export CC=gcc-4.9; export CXX=g++-4.9
@@ -97,16 +97,18 @@ script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - make
-  - echo "errors=0; count=0" > runtest.sh
-  - echo "for t in test/test_*; do" >> runtest.sh
-  - echo "  let count=\$count+1" >> runtest.sh
-  - echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
-  - echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
-  - echo "  let errors=\$errors+\$?" >> runtest.sh
-  - echo "done" >> runtest.sh
-  - echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
-  - echo "if [ \$error -gt 0 ]; then" >> runtest.sh
-  - echo "  exit 1" >> runtest.sh
-  - echo "fi" >> runtest.sh
-  - cat runtest.sh
-  - bash runtest.sh
+  # tests can be run in gdb to get stack traces using the script below:
+  #- echo "errors=0; count=0" > runtest.sh
+  #- echo "for t in test/test_*; do" >> runtest.sh
+  #- echo "  let count=\$count+1" >> runtest.sh
+  #- echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
+  #- echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
+  #- echo "  let errors=\$errors+\$?" >> runtest.sh
+  #- echo "done" >> runtest.sh
+  #- echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
+  #- echo "if [ \$error -gt 0 ]; then" >> runtest.sh
+  #- echo "  exit 1" >> runtest.sh
+  #- echo "fi" >> runtest.sh
+  #- cat runtest.sh
+  #- bash runtest.sh
+  - ctest --output-on-failure

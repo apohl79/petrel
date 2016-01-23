@@ -109,4 +109,4 @@ script:
   - echo "if [ \$error -gt 0 ]; then" >> runtest.sh
   - echo "  exit 1" >> runtest.sh
   - echo "fi" >> runtest.sh
-  - ctest --output-on-failure || bash runtest.sh; false
+  - ctest --output-on-failure || bash runtest.sh && false

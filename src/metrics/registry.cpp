@@ -46,6 +46,7 @@ registry::registry(petrel::resolver_cache& resolver)
 }
 
 registry::~registry() {
+    stop();
     join();
 }
 
@@ -58,8 +59,10 @@ void registry::join() {
 }
 
 void registry::stop() {
-    m_stop = true;
-    m_iosvc.stop();
+    if (!m_stop) {
+        m_stop = true;
+        m_iosvc.stop();
+    }
 }
 
 void registry::run() {

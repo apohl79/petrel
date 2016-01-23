@@ -21,6 +21,7 @@ namespace bfa = bf::asio;
 using ba::ip::tcp;
 
 worker::~worker() {
+    stop();
     join();
 }
 
@@ -86,11 +87,19 @@ void worker::join() {
     }
 }
 
-void worker::start(server& srv) { m_thread = std::thread(&worker::run, this, std::ref(srv)); }
+void worker::start(server& srv) {
+    if (m_acceptors.size() > 0) {
+        m_thread = std::thread(&worker::run, this, std::ref(srv));
+    } else {
+        throw std::runtime_error("unable to create an acceptor socket");
+    }
+}
 
 void worker::stop() {
-    m_stop = true;
-    m_iosvc.stop();
+    if (!m_stop) {
+        m_stop = true;
+        m_iosvc.stop();
+    }
 }
 
 }  // petrel

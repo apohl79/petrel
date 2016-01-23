@@ -48,7 +48,13 @@ macro(add_test_target target)
     ${NGHTTP2_ASIO_LIBRARIES}
     ${LUA_LIBRARIES}
     pthread)
-  add_test(${target} ${target})
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_test(
+      NAME ${target}
+      COMMAND bash ${PROJECT_SOURCE_DIR}/runtest.sh ${target})
+  else(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_test(${target} ${target})
+  endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endmacro()
 
 file(GLOB tests "test_*.cpp")

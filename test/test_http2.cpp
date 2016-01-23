@@ -28,7 +28,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
                           "--lua.root=.", "--lua.statebuffer=5",       "--server.http2"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
 
-    //log::init();
+    log::init();
 
     // create server and push some lua code
     server s;

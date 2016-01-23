@@ -34,7 +34,7 @@ matrix:
             - ubuntu-toolchain-r-test
       install:
         - sudo apt-get update -qq
-        - sudo apt-get install -qq g++-4.9
+        - sudo apt-get install -qq g++-4.9 gdb
 
 # boost.fiber does not compile with clang 3.5 atm
 #    - os: linux
@@ -61,7 +61,7 @@ matrix:
             - ubuntu-toolchain-r-test
       install:
         - sudo apt-get update -qq
-        - sudo apt-get install -qq g++-4.9
+        - sudo apt-get install -qq g++-4.9 gdb
 
 before_script:
  - export CC=gcc-4.9; export CXX=g++-4.9
@@ -98,17 +98,15 @@ script:
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - make
   # tests can be run in gdb to get stack traces using the script below:
-  #- echo "errors=0; count=0" > runtest.sh
-  #- echo "for t in test/test_*; do" >> runtest.sh
-  #- echo "  let count=\$count+1" >> runtest.sh
-  #- echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
-  #- echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
-  #- echo "  let errors=\$errors+\$?" >> runtest.sh
-  #- echo "done" >> runtest.sh
-  #- echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
-  #- echo "if [ \$error -gt 0 ]; then" >> runtest.sh
-  #- echo "  exit 1" >> runtest.sh
-  #- echo "fi" >> runtest.sh
-  #- cat runtest.sh
-  #- bash runtest.sh
-  - ctest --output-on-failure
+  - echo "errors=0; count=0" > runtest.sh
+  - echo "for t in test/test_*; do" >> runtest.sh
+  - echo "  let count=\$count+1" >> runtest.sh
+  - echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
+  - echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
+  - echo "  let errors=\$errors+\$?" >> runtest.sh
+  - echo "done" >> runtest.sh
+  - echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
+  - echo "if [ \$error -gt 0 ]; then" >> runtest.sh
+  - echo "  exit 1" >> runtest.sh
+  - echo "fi" >> runtest.sh
+  - ctest --output-on-failure || bash runtest.sh; false

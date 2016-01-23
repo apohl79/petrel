@@ -21,7 +21,7 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
 
 set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
-set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11 -DBOOST_USE_VALGRIND=1")
 
 include_directories(../src)
 include_directories(../src/core)

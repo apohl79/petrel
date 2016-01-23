@@ -33,6 +33,7 @@ namespace petrel {
 namespace http = boost::http;
 namespace http2 = nghttp2::asio_http2;
 namespace ba = boost::asio;
+namespace bs = boost::system;
 
 /// The server class
 class server_impl: boost::noncopyable {
@@ -42,10 +43,10 @@ class server_impl: boost::noncopyable {
     /// Ctor.
     server_impl(server* srv);
 
-    /// Run the server and block.
-    void run(bool async = false);
+    /// Start the server and return.
+    void start();
 
-    /// Join the server if it was started in async mode.
+    /// Join the server.
     void join();
 
     /// Stop the server.
@@ -108,8 +109,8 @@ class server_impl: boost::noncopyable {
     metrics::meter::pointer m_metric_errors;
     metrics::timer::pointer m_metric_times;
 
-    void run_http2_server(bool async = false);
-    void run_http2_tls_server(bool async = false);
+    void run_http2_server();
+    void run_http2_tls_server();
 };
 
 } // petrel

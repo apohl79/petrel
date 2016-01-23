@@ -12,6 +12,7 @@
 #include <ostream>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 
 #include <boost/utility/string_ref.hpp>
 
@@ -60,6 +61,7 @@ std::ostream& operator<<(std::ostream& os, const log_tag& tag);
 class log : public std::basic_streambuf<char, std::char_traits<char> > {
   public:
     explicit log(std::string ident, int facility, bool syslog, int priority);
+    ~log() { std::clog.rdbuf(nullptr); }
     static bool is_log_priority(int priority) noexcept {
         auto p = static_cast<log_priority>(priority);
         switch (p) {
@@ -86,9 +88,13 @@ class log : public std::basic_streambuf<char, std::char_traits<char> > {
     }
     static constexpr int to_int(const log_priority& priority) noexcept { return static_cast<int>(priority); }
     static void init(bool syslog = false, int priority = 7) {
-        std::clog.rdbuf(new log("petrel", LOG_LOCAL0, syslog, priority));
-        std::clog << std::fixed << std::setprecision(2);
+        if (nullptr == m_instance) {
+            m_instance.reset(new log("petrel", LOG_LOCAL0, syslog, priority));
+            std::clog.rdbuf(m_instance.get());
+            std::clog << std::fixed << std::setprecision(2);
+        }
     }
+    static std::unique_ptr<log> m_instance;
     static bool m_syslog;
     static int m_filter_priority;
 

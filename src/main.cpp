@@ -10,6 +10,14 @@
 #include "log.h"
 #include "options.h"
 
+void sig_handler(petrel::server& s, const petrel::bs::error_code& ec, int signal_number) {
+    if (!ec) {
+        set_log_tag("main");
+        log_info("Received signal " << signal_number);
+        s.impl()->stop();
+    }
+}
+
 int main(int argc, const char** argv) {
     // Parse command line
     if (!petrel::options::parse(argc, argv)) {
@@ -30,12 +38,18 @@ int main(int argc, const char** argv) {
         return 0;
     }
 
+
     petrel::log::init(petrel::options::opts.count("log.syslog"), petrel::options::opts["log.level"].as<int>());
 
     try {
         petrel::server s;
+        petrel::ba::io_service iosvc;
+        petrel::ba::signal_set signals(iosvc, SIGINT, SIGTERM);
+        signals.async_wait(std::bind(sig_handler, std::ref(s), std::placeholders::_1, std::placeholders::_2));
         s.impl()->init();
-        s.impl()->run();
+        s.impl()->start();
+        iosvc.run(); // wait for a signal to stop
+        s.impl()->join();
     } catch (std::exception& e) {
         set_log_tag("main");
         log_emerg(e.what());

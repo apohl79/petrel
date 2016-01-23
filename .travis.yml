@@ -97,6 +97,4 @@ script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - make
-  - test/test_http
-  - test/test_http2
   - ctest --output-on-failure

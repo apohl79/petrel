@@ -24,11 +24,11 @@ using namespace boost::fibers;
 
 BOOST_AUTO_TEST_CASE(test_http2) {
     // options
-    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18585",
+    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18586",
                           "--lua.root=.", "--lua.statebuffer=5",       "--server.http2"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
 
-    log::init();
+    //log::init();
 
     // create server and push some lua code
     server s;
@@ -59,7 +59,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
     ce.add_lua_code_to_buffer(
         "function test() "
         "  h = http2_client() "
-        "  h:connect(\"localhost\", \"18585\") "
+        "  h:connect(\"localhost\", \"18586\") "
         "  return h:get(\"/\") "
         "end");
     auto Lex = ce.create_lua_state();

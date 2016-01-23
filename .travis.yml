@@ -97,4 +97,4 @@ script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
   - make
-  - ctest --output-on-failure
+  - errors=0; count=0; for t in test/test_*; do let count=$count+1; echo -e "\nTest #$count ($t)"; $t; let errors=$errors+$?; done; echo -e "\n$errors out of $count tests failed"; if [ $error -gt 0 ]; then false; fi

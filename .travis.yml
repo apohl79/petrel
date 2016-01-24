@@ -77,13 +77,15 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC=$(which $CXX); fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam; fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
-  - ./b2 -q -d0 --debug-configuration headers
+  - ./b2 -q -d0 --user-config=user-config.jam headers
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
   - popd
   - export CC=$USE_CC; export CXX=$USE_CXX
-  - curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.6.0/nghttp2-1.6.0.tar.bz2 | tar xj
-  - pushd "nghttp2-1.6.0"
-  #- autoreconf -i && automake && autoconf
+  #- curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.6.0/nghttp2-1.6.0.tar.bz2 | tar xj
+  #- pushd "nghttp2-1.6.0"
+  - git clone https://github.com/tatsuhiro-t/nghttp2.git
+  - pushd "nghttp2"
+  - autoreconf -i && automake && autoconf
   - ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
   - sudo make install
   - popd
@@ -93,7 +95,6 @@ before_script:
   - sudo make install
   - popd
   - cd $BUILD_ROOT
-  - export CC=$USE_CC; export CXX=$USE_CXX
 
 script:
   - mkdir build && cd build

@@ -57,6 +57,10 @@ lua_engine::lua_engine() {
 lua_engine::~lua_engine() {
     stop();
     join();
+    for (auto Lex : m_states) {
+        destroy_lua_state(Lex);
+    }
+    m_states.clear();
     for (auto& lib : m_libs) {
         if (nullptr != lib.unload_func) {
             lib.unload_func();
@@ -167,7 +171,6 @@ lua_state_ex lua_engine::create_lua_state() {
 
 void lua_engine::destroy_lua_state(lua_state_ex L) {
     if (nullptr != L.L) {
-        lua_close(L.L);
         if (nullptr != L.ctx->p_objects) {
             for (auto* obj : *L.ctx->p_objects) {
                 delete obj;
@@ -175,6 +178,7 @@ void lua_engine::destroy_lua_state(lua_state_ex L) {
             L.ctx->p_objects->clear();
             delete L.ctx->p_objects;
         }
+        lua_close(L.L);
     }
 }
 

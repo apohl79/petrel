@@ -37,7 +37,14 @@ set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(COMP_FLAGS "${COMP_FLAGS} -fdiagnostics-color=auto")
-endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+endif()
+
+option(VALGRIND "Enable valgrind support. Note: you have to build boost with valgrind=on." off)
+
+if(VALGRIND)
+  message(STATUS "Enabling valgrind support")
+  set(COMP_FLAGS "${COMP_FLAGS} -DBOOST_USE_VALGRIND=1")
+endif()
 
 set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11")
@@ -87,15 +94,18 @@ install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 # libraries
 #add_subdirectory(lib/name)
 
-if(SEGMENTED_STACKS STREQUAL "on")
+option(SEGMENTED_STACKS "Enable segmented stacks support. Note: You have to build boost with segmented-stacks=on." off)
+
+if(SEGMENTED_STACKS)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    message(STATUS "Enabling segmented stacks support")
     set(COMP_FLAGS "${COMP_FLAGS} -fsplit-stack -DBOOST_USE_SEGMENTED_STACKS")
     set(CMAKE_EXE_LINKER_FLAGS "-fuse-ld=gold")
     set(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=gold")
     target_link_libraries(${LIB_CORE_NAME} gcc)
     target_link_libraries(${PROJECT_NAME} gcc)
-  endif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-endif(SEGMENTED_STACKS STREQUAL "on")
+  endif()
+endif()
 
 # install header files
 file(GLOB HEADERS "core/server.h" "core/log.h" "lib/library.h" "metrics/*.h")

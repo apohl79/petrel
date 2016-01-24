@@ -15,6 +15,7 @@
 
 namespace petrel {
 
+std::unique_ptr<log> log::m_instance = nullptr;
 bool log::m_syslog = false;
 int log::m_filter_priority;
 std::string log_color::darkgray;

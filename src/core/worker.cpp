@@ -15,12 +15,12 @@
 
 namespace petrel {
 
-namespace bs = boost::system;
 namespace bfa = bf::asio;
 
 using ba::ip::tcp;
 
 worker::~worker() {
+    stop();
     join();
 }
 
@@ -39,7 +39,7 @@ void worker::do_accept(tcp::acceptor& acceptor, server& srv) {
     }
 }
 
-void worker::add_endpoint(tcp::endpoint& ep) {
+void worker::add_endpoint(tcp::endpoint& ep, bs::error_code& ec) {
     try {
         auto acceptor = tcp::acceptor(m_iosvc);
         acceptor.open(ep.protocol());
@@ -52,7 +52,7 @@ void worker::add_endpoint(tcp::endpoint& ep) {
         acceptor.listen(backlog);
         m_acceptors.push_back(std::move(acceptor));
     } catch (bs::system_error& e) {
-        log_err("failed to create acceptor: " << e.what());
+        ec = e.code();
     }
 }
 
@@ -89,8 +89,10 @@ void worker::join() {
 void worker::start(server& srv) { m_thread = std::thread(&worker::run, this, std::ref(srv)); }
 
 void worker::stop() {
-    m_stop = true;
-    m_iosvc.stop();
+    if (!m_stop) {
+        m_stop = true;
+        m_iosvc.stop();
+    }
 }
 
 }  // petrel

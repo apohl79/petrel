@@ -65,7 +65,7 @@ void server_impl::init() {
     m_registry.start();
 }
 
-void server_impl::run(bool async) {
+void server_impl::start() {
     if (options::opts.count("server.http2")) {
         // Install a handler that uses our own router
         m_http2_server->handle("/", [this](const http2::server::request& req, const http2::server::response& res) {
@@ -74,9 +74,9 @@ void server_impl::run(bool async) {
         });
         // Check for SSL
         if (options::opts.count("server.http2.tls")) {
-            run_http2_tls_server(async);
+            run_http2_tls_server();
         } else {
-            run_http2_server(async);
+            run_http2_server();
         }
     } else {
         // Create acceptors
@@ -86,35 +86,39 @@ void server_impl::run(bool async) {
         ba::io_service iosvc;
         tcp::resolver resolver(iosvc);
         tcp::resolver::query query(listen, port);
+        bs::error_code ec;
+        bool success = false;
         // Create an acceptor for any address and protocol type (IPv6/IPv4)
         for (auto it = resolver.resolve(query); it != tcp::resolver::iterator(); ++it) {
             tcp::endpoint ep = *it;
-            get_worker().add_endpoint(ep);
+            bs::error_code ec_local;
+            get_worker().add_endpoint(ep, ec_local);
+            if (ec_local) {
+                ec = ec_local;
+            } else {
+                success = true;
+            }
+        }
+        if (!success) {
+            throw std::runtime_error(ec.message());
         }
         // Run the io_service objects
         for (auto& w : m_workers) {
             w->start(*m_server);
         }
-        log_notice("running http server on " << listen << ":" << port);
-        if (async) {
-            m_stop_func = [this] {
-                // Stop the workers
-                for (auto& w : m_workers) {
-                    w->stop();
-                }
-            };
-            m_join_func = [this] {
-                // Join the workers
-                for (auto& w : m_workers) {
-                    w->join();
-                }
-            };
-        } else {
+        log_notice("http server listening on " << listen << ":" << port);
+        m_stop_func = [this] {
+            // Stop the workers
+            for (auto& w : m_workers) {
+                w->stop();
+            }
+        };
+        m_join_func = [this] {
             // Join the workers
             for (auto& w : m_workers) {
                 w->join();
             }
-        }
+        };
     }
 }
 
@@ -125,7 +129,7 @@ void server_impl::join() {
 }
 
 void server_impl::stop() {
-    log_notice("shutting server down");
+    log_notice("stopping server");
     m_stop_func();
     m_lua_engine.stop();
     m_registry.stop();
@@ -217,9 +221,7 @@ void server_impl::set_route(const std::string& path, const std::string& func) {
     log_info("  new route: " << path << " -> " << func);
 }
 
-void server_impl::run_http2_server(bool async) {
-    log_notice("Running http2 server on " << options::opts["server.listen"].as<std::string>() << ":"
-                                          << options::opts["server.port"].as<std::string>());
+void server_impl::run_http2_server() {
     bs::error_code ec;
     if (m_http2_server->listen_and_serve(ec, options::opts["server.listen"].as<std::string>(),
                                          options::opts["server.port"].as<std::string>(), true)) {
@@ -229,15 +231,13 @@ void server_impl::run_http2_server(bool async) {
         // register asio scheduler
         iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
     }
-    if (async) {
-        m_stop_func = [this] { m_http2_server->stop(); };
-        m_join_func = [this] { m_http2_server->join(); };
-    } else {
-        m_http2_server->join();
-    }
+    log_notice("http2 server listening on " << options::opts["server.listen"].as<std::string>() << ":"
+                                            << options::opts["server.port"].as<std::string>());
+    m_stop_func = [this] { m_http2_server->stop(); };
+    m_join_func = [this] { m_http2_server->join(); };
 }
 
-void server_impl::run_http2_tls_server(bool async) {
+void server_impl::run_http2_tls_server() {
     log_notice("enabling https support");
     if (!options::opts.count("server.http2.key-file")) {
         throw std::invalid_argument("You have to specify a private key file (--server.http2.key-file) to use SSL/TLS.");
@@ -260,8 +260,6 @@ void server_impl::run_http2_tls_server(bool async) {
         throw std::runtime_error(ec.message());
     }
 
-    log_notice("running http2 server on " << options::opts["server.listen"].as<std::string>() << ":"
-                                          << options::opts["server.port"].as<std::string>());
     if (m_http2_server->listen_and_serve(ec, tls, options::opts["server.listen"].as<std::string>(),
                                          options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
@@ -270,12 +268,10 @@ void server_impl::run_http2_tls_server(bool async) {
         // register asio scheduler
         iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
     }
-    if (async) {
-        m_stop_func = [this] { m_http2_server->stop(); };
-        m_join_func = [this] { m_http2_server->join(); };
-    } else {
-        m_http2_server->join();
-    }
+    log_notice("http2 server listening on " << options::opts["server.listen"].as<std::string>() << ":"
+                                            << options::opts["server.port"].as<std::string>());
+    m_stop_func = [this] { m_http2_server->stop(); };
+    m_join_func = [this] { m_http2_server->join(); };
 }
 
 }  // petrel

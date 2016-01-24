@@ -22,6 +22,7 @@
 namespace petrel {
 
 namespace ba = boost::asio;
+namespace bs = boost::system;
 namespace bf = boost::fibers;
 
 class server;
@@ -38,7 +39,7 @@ class worker : boost::noncopyable {
     ~worker();
 
     /// Create an acceptor for a tcp endpoint.
-    void add_endpoint(ba::ip::tcp::endpoint& ep);
+    void add_endpoint(ba::ip::tcp::endpoint& ep, bs::error_code& ec);
 
     /// Add a session to this worker
     void add_session(session::pointer new_session);

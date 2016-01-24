@@ -24,7 +24,7 @@ using namespace boost::fibers;
 
 BOOST_AUTO_TEST_CASE(test_http2) {
     // options
-    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18585",
+    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18586",
                           "--lua.root=.", "--lua.statebuffer=5",       "--server.http2"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
 
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
 
     // start server
     s.impl()->init();
-    s.impl()->run(true); // don't block
+    s.impl()->start();
 
     set_log_tag("test_main");
     log_info("server up");
@@ -59,38 +59,40 @@ BOOST_AUTO_TEST_CASE(test_http2) {
     ce.add_lua_code_to_buffer(
         "function test() "
         "  h = http2_client() "
-        "  h:connect(\"localhost\", \"18585\") "
+        "  h:connect(\"localhost\", \"18586\") "
         "  return h:get(\"/\") "
         "end");
     auto Lex = ce.create_lua_state();
     log_info("state created");
 
-    fiber([&s2, &iosvc, &Lex] {
-        set_log_tag("test_clnt");
-        log_info("started");
+    std::thread([&] {
+        fiber([&] {
+            set_log_tag("test_clnt");
+            log_info("started");
 
-        Lex.ctx->p_server = &s2;
-        Lex.ctx->p_io_service = &iosvc;
-        lua_getglobal(Lex.L, "test");
-        BOOST_CHECK(lua_isfunction(Lex.L, -1));
-        // call function
-        if(lua_pcall(Lex.L, 0, 2, Lex.traceback_idx)) {
-            BOOST_CHECK_MESSAGE(false, "lua_pcall failed: " << lua_tostring(Lex.L, -1));
-        } else {
-            // check result
-            BOOST_CHECK(lua_isstring(Lex.L, -1));
-            BOOST_CHECK(lua_isinteger(Lex.L, -2));
-            std::string content(lua_tostring(Lex.L, -1));
-            int status = lua_tointeger(Lex.L, -2);
-            BOOST_CHECK_MESSAGE(content == "test", "'test' expected: content was '" << content << "'");
-            BOOST_CHECK(status == 200);
-        }
-        iosvc.stop();
-        log_info("done");
-    }).detach();
+            Lex.ctx->p_server = &s2;
+            Lex.ctx->p_io_service = &iosvc;
+            lua_getglobal(Lex.L, "test");
+            BOOST_CHECK(lua_isfunction(Lex.L, -1));
+            // call function
+            if (lua_pcall(Lex.L, 0, 2, Lex.traceback_idx)) {
+                BOOST_CHECK_MESSAGE(false, "lua_pcall failed: " << lua_tostring(Lex.L, -1));
+            } else {
+                // check result
+                BOOST_CHECK(lua_isstring(Lex.L, -1));
+                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                std::string content(lua_tostring(Lex.L, -1));
+                int status = lua_tointeger(Lex.L, -2);
+                BOOST_CHECK_MESSAGE(content == "test", "'test' expected: content was '" << content << "'");
+                BOOST_CHECK(status == 200);
+            }
+            iosvc.stop();
+            log_info("done");
+        }).detach();
 
-    use_scheduling_algorithm<fiber_sched_algorithm>(iosvc);
-    iosvc.run();
+        use_scheduling_algorithm<fiber_sched_algorithm>(iosvc);
+        iosvc.run();
+    }).join();
 
     ce.destroy_lua_state(Lex);
 

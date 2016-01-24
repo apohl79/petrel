@@ -9,11 +9,13 @@
 #include "server.h"
 #include "server_impl.h"
 #include "log.h"
+#include "make_unique.h"
 
 #include <dlfcn.h>
 #include <string>
 #include <sstream>
 #include <vector>
+#include <memory>
 #include <algorithm>
 #include <boost/utility/string_ref.hpp>
 #include <boost/filesystem.hpp>
@@ -35,10 +37,10 @@ REGISTER_LIB_BUILTIN();
 
 /// List of paths to search for libraries loaded via load_lib
 using path_list = std::vector<std::string>;
-path_list* g_lib_search_path = nullptr;
+std::unique_ptr<path_list> g_lib_search_path;
 
 void petrel::load() {
-    g_lib_search_path = new path_list();
+    g_lib_search_path = std::make_unique<path_list>();
     g_lib_search_path->push_back("/usr/lib");
     g_lib_search_path->push_back("/usr/local/lib");
     boost::string_ref libsuffix(PETREL_LIBDIR_SUFFIX);

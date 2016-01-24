@@ -99,17 +99,17 @@ before_script:
 script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost_head ..
-  - make
+  - make && ctest --output-on-failure
   # tests can be run in gdb to get stack traces using the script below:
-  - echo "errors=0; count=0" > runtest.sh
-  - echo "for t in test/test_*; do" >> runtest.sh
-  - echo "  let count=\$count+1" >> runtest.sh
-  - echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
-  - echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
-  - echo "  let errors=\$errors+\$?" >> runtest.sh
-  - echo "done" >> runtest.sh
-  - echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
-  - echo "if [ \$error -gt 0 ]; then" >> runtest.sh
-  - echo "  exit 1" >> runtest.sh
-  - echo "fi" >> runtest.sh
-  - ctest --output-on-failure || bash runtest.sh && false
+  #- echo "errors=0; count=0" > runtest.sh
+  #- echo "for t in test/test_*; do" >> runtest.sh
+  #- echo "  let count=\$count+1" >> runtest.sh
+  #- echo "  echo -e \"\nTest \$count (\$t)\"" >> runtest.sh
+  #- echo "  gdb -batch -ex r -ex bt \$t" >> runtest.sh
+  #- echo "  let errors=\$errors+\$?" >> runtest.sh
+  #- echo "done" >> runtest.sh
+  #- echo "echo -e \"\n\$errors out of \$count tests failed\"" >> runtest.sh
+  #- echo "if [ \$error -gt 0 ]; then" >> runtest.sh
+  #- echo "  exit 1" >> runtest.sh
+  #- echo "fi" >> runtest.sh
+  #- bash runtest.sh

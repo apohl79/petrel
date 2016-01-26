@@ -20,66 +20,67 @@
       <a href="docs/build/html/index.html" class="btn">Documentation</a>
     </section>
 
-      <section class="main_content">
-<h3><a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>Architecture.</h3>
+    <section class="main_content">
+      <h3><a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span class="octicon octicon-link"></span></a>Architecture.</h3>
 
-<p>The following diagram shows the internal design of petrel. It embeds lua and uses a couple of libraries to implement the http and http2 protocols as well as fibers and network/disk IO. Check out the <a href="https://github.com/apohl79/petrel">github page</a> for detailed build instructions of petrel and the dependencies.</p>
+      <p>The following diagram shows the internal design of petrel. It embeds lua and uses a couple of libraries to implement the http and http2 protocols as well as fibers and network/disk IO. Check out the <a href="https://github.com/apohl79/petrel">github page</a> for detailed build instructions of petrel and the dependencies.</p>
 
-<p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-arch.png" alt="petrel architecture"></p>
+      <p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-arch.png" alt="petrel architecture"></p>
 
-<h3><a id="os_base" class="anchor" href="#os_base" aria-hidden="true"><span class="octicon octicon-link"></span></a>OS base.</h3>
+      <h3><a id="os_base" class="anchor" href="#os_base" aria-hidden="true"><span class="octicon octicon-link"></span></a>OS base.</h3>
 
-<p>The lowest layer uses libraries like boost.asio, boost.fiber or nghttp2 to implement the following functionalities:</p>
+      <p>The lowest layer uses libraries like boost.asio, boost.fiber or nghttp2 to implement the following functionalities:</p>
 
-<ul>
-  <li>Network IO: async socket operations, dns lookups etc (boost.asio)</li>
-  <li>Fibers: userspace context switches (boost.fiber)</li>
-  <li>HTTP/1 protocol (boost.http)</li>
-  <li>HTTP/2 protocol (nghttp2)</li>
-  <li>syslog: logging base (posix syslog or console via std)</li>
-</ul>
+      <ul>
+        <li>Network IO: async socket operations, dns lookups etc (boost.asio)</li>
+        <li>Fibers: userspace context switches (boost.fiber)</li>
+        <li>HTTP/1 protocol (boost.http)</li>
+        <li>HTTP/2 protocol (nghttp2)</li>
+        <li>syslog: logging base (posix syslog or console via std)</li>
+      </ul>
 
-<h3><a id="core" class="anchor" href="#core" aria-hidden="true"><span class="octicon octicon-link"></span></a>Petrel core.</h3>
+      <h3><a id="core" class="anchor" href="#core" aria-hidden="true"><span class="octicon octicon-link"></span></a>Petrel core.</h3>
 
-<p>The core layer is responsible for running the web server and executing the lua code and it's interaction with native code. It provides:</p>
+      <p>The core layer is responsible for running the web server and executing the lua code and it's interaction with native code. It provides:</p>
 
-<ul>
-  <li>HTTP server: http/http2 protocols, loading the handler routing table (router) to pass requests to the installed request handlers</li>
-  <li>Lua environment: loading builtin and external native libraries, loading/executing the users lua code</li>
-  <li>Metrics: providing a metrics interface (registry) and metrics implementations (meter, timer, counter) with graphite support</li>
-  <li>DNS cache: a boost.asio resolver compatible interface to cache DNS lookups</li>
-  <li>Logging: interface for level based logging to the console or syslog</li>
-</ul>
+      <ul>
+        <li>HTTP server: http/http2 protocols, loading the handler routing table (router) to pass requests to the installed request handlers</li>
+        <li>Lua environment: loading builtin and external native libraries, loading/executing the users lua code</li>
+        <li>Metrics: providing a metrics interface (registry) and metrics implementations (meter, timer, counter) with graphite support</li>
+        <li>DNS cache: a boost.asio resolver compatible interface to cache DNS lookups</li>
+        <li>Logging: interface for level based logging to the console or syslog</li>
+      </ul>
 
-<h3><a id="libs" class="anchor" href="#libs" aria-hidden="true"><span class="octicon octicon-link"></span></a>C++ libraries.</h3>
+      <h3><a id="libs" class="anchor" href="#libs" aria-hidden="true"><span class="octicon octicon-link"></span></a>C++ libraries.</h3>
 
-<p>Based on the core layer petrel provides several builtin libraries to configure petrel itself (setup routes, load external libraries), metrics, logging etc. A user can implement native libraries and load them into the lua environment.</p>
+      <p>Based on the core layer petrel provides several builtin libraries to configure petrel itself (setup routes, load external libraries), metrics, logging etc. A user can implement native libraries and load them into the lua environment.</p>
 
-<h3><a id="libs_interface" class="anchor" href="#libs_interface" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua library interface.</h3>
+      <h3><a id="libs_interface" class="anchor" href="#libs_interface" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua library interface.</h3>
 
-<p>The library interface makes it easy to extent petrels functionality. Libraries will be implemented in C++ and get linked to shared objects which can be loaded by petrel during the bootstrap phase. The lua engine will expose all builtin and external libraries to the lua environment to make them available to the users lua code.</p>
+      <p>The library interface makes it easy to extent petrels functionality. Libraries will be implemented in C++ and get linked to shared objects which can be loaded by petrel during the bootstrap phase. The lua engine will expose all builtin and external libraries to the lua environment to make them available to the users lua code.</p>
 
-<h3><a id="lua" class="anchor" href="#lua" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua business logic.</h3>
+      <h3><a id="lua" class="anchor" href="#lua" aria-hidden="true"><span class="octicon octicon-link"></span></a>Lua business logic.</h3>
 
-<p>The highest layer is entirely based on the users code. The services behavior will be implemented in lua. The environment is restricted (no network/disk IO, no system calls, no coroutines) to keep the business logic as simple as possible. If functionality is missing a user can implement his own native extensions or lua modules.</p>
+      <p>The highest layer is entirely based on the users code. The services behavior will be implemented in lua. The environment is restricted (no network/disk IO, no system calls, no coroutines) to keep the business logic as simple as possible. If functionality is missing a user can implement his own native extensions or lua modules.</p>
 
-<h3><a id="processing" class="anchor" href="#processing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Request processing.</h3>
+      <h3><a id="processing" class="anchor" href="#processing" aria-hidden="true"><span class="octicon octicon-link"></span></a>Request processing.</h3>
 
-<p>Each request runs in its own fiber and in an isolated lua state. If a user needs to share data between requests, (s)he has to go through a native library and needs to make sure the library is thread safe.</p>
+      <p>Each request runs in its own fiber and in an isolated lua state. If a user needs to share data between requests, (s)he has to go through a native library and needs to make sure the library is thread safe.</p>
 
-<p>Lua states live in a state buffer and get pre-created asynchronously. The diagram below shows the request processing chain.</p>
+      <p>Lua states live in a state buffer and get pre-created asynchronously. The diagram below shows the request processing chain.</p>
 
-<p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-request.png" alt="petrel request processing"></p>
+      <!--
+      <p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-request.png" alt="petrel request processing"></p>
+      -->
+      <p>States get returned to the state buffer to be reused. The lua code can invoke native calls through the library interface.</p>
 
-<p>States get returned to the state buffer to be reused. The lua code can invoke native calls through the library interface.</p>
-
-<p><a href="index.html">Back to main page...</a></p>
+      <p><a href="index.html">Back to main page...</a></p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/apohl79/petrel">PETREL</a> is maintained by <a href="https://github.com/apohl79">Andreas Pohl</a>.</span>
       </footer>
-
-      </section>
+      
+    </section>
 
     
   </body>

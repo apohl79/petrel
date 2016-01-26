@@ -20,39 +20,34 @@
     </section>
 
     <section class="main-content">
-      <h3>
-<a id="welcome-to-petrel" class="anchor" href="#welcome-to-petrel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to petrel.</h3>
+      <h3><a id="welcome-to-petrel" class="anchor" href="#welcome-to-petrel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to petrel.</h3>
 
-<p>Complex software systems are often build as distributed collections of small services - or micro services. When building those services you and your team need to focus on implementing the business logic. You want to be fast and flexible. You want things to be stable and scalable. But you don't want to spend weeks in writing low level event based network code in your beloved C++. Of course, deployments need to by as simple and dynamic as possible because your release cycles are supposed to be very short.<br>
+      <p>Complex software systems are often build as distributed collections of small services - or micro services. When building those services you and your team need to focus on implementing the business logic. You want to be fast and flexible. You want things to be stable and scalable. But you don't want to spend weeks in writing low level event based network code in your beloved C++. Of course, deployments need to by as simple and dynamic as possible because your release cycles are supposed to be very short.<br>
 -- This is where <strong>petrel</strong> comes in.</p>
 
-<h3>
-<a id="what-is-petrel" class="anchor" href="#what-is-petrel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is petrel?</h3>
+      <h3><a id="what-is-petrel" class="anchor" href="#what-is-petrel" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>What is petrel?</h3>
 
-<ul>
-<li>A framework for rapid development of micro/web services</li>
-<li>A web server with HTTP/1 and HTTP/2 support including SSL</li>
-<li>Combines fibers with LUA (no callbacks, just write your "blocking" code and don't care about threads or non-blocking IO)</li>
-<li>Provides a C++ library interface to implement performance critical code</li>
-<li>Provides a LUA framework to implement business logic</li>
-<li>Easy to extend (write native libs in C++ and implement the rest in LUA)</li>
-</ul>
+      <ul>
+        <li>A framework for rapid development of micro/web services</li>
+        <li>A web server with HTTP/1 and HTTP/2 support including SSL</li>
+        <li>Combines fibers with LUA (no callbacks, just write your "blocking" code and don't care about threads or non-blocking IO)</li>
+        <li>Provides a C++ library interface to implement performance critical code</li>
+        <li>Provides a LUA framework to implement business logic</li>
+        <li>Easy to extend (write native libs in C++ and implement the rest in LUA)</li>
+      </ul>
 
-<h3>
-<a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Architecture</h3>
+      <h3>
+        <a id="architecture" class="anchor" href="#architecture" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Architecture</h3>
 
-<p>The following diagram shows the internal design of petrel. It embeds lua and uses a couple of libraries to implement the http and http2 protocols as well as fibers and network/disk IO. Check out the <a href="https://github.com/apohl79/petrel">github page</a> for detailed build instructions of petrel and the dependencies.</p>
+      <p>The following diagram shows the internal design of petrel. It embeds lua and uses a couple of libraries to implement the http and http2 protocols as well as fibers and network/disk IO. Check out the <a href="https://github.com/apohl79/petrel">github page</a> for detailed build instructions of petrel and the dependencies.</p>
 
-<p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-arch.png" alt="petrel architecture"></p>
+      <p><img src="https://raw.githubusercontent.com/apohl79/petrel/gh-pages/images/petrel-arch.png" alt="petrel architecture"></p>
 
-<p><a href="architecture.html">Read more</a> about how petrel works...</p>
+      <p><a href="architecture.html">Read more</a> about how petrel works...</p>
 
       <footer class="site-footer">
         <span class="site-footer-owner"><a href="https://github.com/apohl79/petrel">PETREL</a> is maintained by <a href="https://github.com/apohl79">Andreas Pohl</a>.</span>
       </footer>
-
     </section>
-
-  
   </body>
 </html>

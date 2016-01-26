@@ -36,7 +36,7 @@ Dependencies
      $ sudo ./b2 -q --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install
      $ cd ..
 
-#. nghttp2::
+#. **nghttp2**::
    
    $ git clone https://github.com/tatsuhiro-t/nghttp2.git
    $ cd nghttp2

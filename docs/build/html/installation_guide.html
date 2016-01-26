@@ -1,0 +1,276 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation Guide</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="next" title="Configuration Options" href="config_options.html"/>
+        <link rel="prev" title="Getting Started" href="getting_started.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dependencies">Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#petrel">Petrel</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Installation Guide</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this headline">¶</a></h1>
+<p>Petrel has the following dependencies that you need to compile yourself at the moment:</p>
+<ul class="simple">
+<li>boost</li>
+<li>boost.fiber (not yet part of the official boost libraries)</li>
+<li>nghttp2</li>
+<li>lua (we need to build lua with C++ support)</li>
+</ul>
+<p>Only linux is tested right now. Working compilers are GCC 4.9, 5.3 and Clang 3.6 (others probably too).</p>
+<div class="section" id="dependencies">
+<h2>Dependencies<a class="headerlink" href="#dependencies" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first"><strong>Build dependencies</strong></p>
+<p>On debian based distributions like ubuntu run:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo apt-get install g++-4.9 gdb git cmake libreadline-dev libssl-dev autoconf libtool pkgconf
+$ export CC=gcc-4.9 CXX=g++-4.9
+</pre></div>
+</div>
+<p>For other distribution you have to install the packages above.</p>
+</li>
+<li><p class="first"><strong>Boost and boost.fiber</strong></p>
+<p>We install our boost build to <em>/usr/local/boost_head</em> and link it statically. So you should be able to use the boost version shipped with your distribution as usual for other applications:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git clone --recursive https://github.com/boostorg/boost.git
+$ cd boost/libs
+$ git clone https://github.com/olk/boost-fiber.git fiber
+$ cd ..
+$ echo &quot;using gcc : : $CXX ;&quot; &gt; user-config.jam
+$ ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test
+$ ./b2 -q --user-config=user-config.jam headers
+$ sudo ./b2 -q --user-config=user-config.jam cxxflags=&quot;-std=c++11 -fPIC&quot; threading=multi link=static install
+$ cd ..
+</pre></div>
+</div>
+</li>
+<li><p class="first">nghttp2:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git clone https://github.com/tatsuhiro-t/nghttp2.git
+$ cd nghttp2
+$ autoreconf -i &amp;&amp; automake &amp;&amp; autoconf
+$ ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
+$ sudo make install
+$ cd ..
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>LUA</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz
+$ cd lua-5.3.2
+$ make linux CC=&quot;$CXX -std=c++11&quot;
+$ sudo make install
+$ cd ..
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="petrel">
+<h2>Petrel<a class="headerlink" href="#petrel" title="Permalink to this headline">¶</a></h2>
+<p>To build and install petrel run the following commands:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ git clone --recursive https://github.com/apohl79/petrel.git
+$ cd petrel
+$ mkdir build
+$ cd build
+$ cmake -DBOOST_ROOT=/usr/local/boost_head ..
+$ make
+$ sudo make install
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="config_options.html" class="btn btn-neutral float-right" title="Configuration Options" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="getting_started.html" class="btn btn-neutral" title="Getting Started" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

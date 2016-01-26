@@ -1,0 +1,330 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Configuration Options</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="next" title="A Request Handler" href="request_handler.html"/>
+        <link rel="prev" title="Installation Guide" href="installation_guide.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Configuration Options</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="configuration-options">
+<h1>Configuration Options<a class="headerlink" href="#configuration-options" title="Permalink to this headline">¶</a></h1>
+<p>All configuration options can be specified via commandline or configuration file. Parameters are grouped together. A paramter on the commandline has the form &#8211;&lt;group&gt;.&lt;parameter&gt;.</p>
+<p>The following commandline options are available:</p>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Option</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><strong>Server options:</strong></td>
+<td>Group name: <em>server</em></td>
+</tr>
+<tr class="row-odd"><td>http2</td>
+<td>Run a HTTP/2 server. Default is HTTP/1.</td>
+</tr>
+<tr class="row-even"><td>workers</td>
+<td>Number of worker threads. By setting this to 0, 1 worker per</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>CPU gets created. Default is 1.</td>
+</tr>
+<tr class="row-even"><td>listen arg</td>
+<td>Listen on the given IP/name.</td>
+</tr>
+<tr class="row-odd"><td>port arg (=8585)</td>
+<td>Server port for TCP</td>
+</tr>
+<tr class="row-even"><td>backlog arg (=0)</td>
+<td>Listen backlog. Set this to 0 for max.</td>
+</tr>
+<tr class="row-odd"><td>http2.tls</td>
+<td>Enable SSL/TLS support for HTTP2.</td>
+</tr>
+<tr class="row-even"><td>http2.key-file arg</td>
+<td>SSL/TLS private key file</td>
+</tr>
+<tr class="row-odd"><td>http2.crt-file arg</td>
+<td>SSL/TLS certificate file</td>
+</tr>
+<tr class="row-even"><td>dns-cache-ttl arg (=5)</td>
+<td>DNS cache TTL in minutes</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><strong>LUA options:</strong></td>
+<td>Group name: <em>lua</em></td>
+</tr>
+<tr class="row-odd"><td>root arg</td>
+<td>The lua script root. All .lua files will be loaded.</td>
+</tr>
+<tr class="row-even"><td>statebuffer arg (=500)</td>
+<td>The lua state buffer controlls how many lua state objects will be</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>kept available by the lua engine for request handling to avoid</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>creating states at handling time.</td>
+</tr>
+<tr class="row-odd"><td>lua.devmode</td>
+<td>Activate the lua devmode. In this mode the server will reload the</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>lua scripts on every single request.</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-even"><td><strong>Logging options:</strong></td>
+<td>Group name: <em>log</em></td>
+</tr>
+<tr class="row-odd"><td>syslog</td>
+<td>Log to syslog.</td>
+</tr>
+<tr class="row-even"><td>level arg (=6)</td>
+<td>Log level: 0=emerg, 1=alert, 2=crit, 3=err, 4=warn, 5=notice,</td>
+</tr>
+<tr class="row-odd"><td></td>
+<td>6=info, 7=debug</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>&nbsp;</td>
+</tr>
+<tr class="row-odd"><td><strong>Metrics options:</strong></td>
+<td>Group name: <em>metrics</em></td>
+</tr>
+<tr class="row-even"><td>log arg (=0)</td>
+<td>Enable metrics logging every N seconds.</td>
+</tr>
+<tr class="row-odd"><td>graphite</td>
+<td>Enable sending metrics to graphite.</td>
+</tr>
+<tr class="row-even"><td>graphite.interval arg (=10)</td>
+<td>Send the metrics every N seconds.</td>
+</tr>
+<tr class="row-odd"><td>graphite.host arg</td>
+<td>The graphite host</td>
+</tr>
+<tr class="row-even"><td>graphite.port arg (=2003)</td>
+<td>The graphite port</td>
+</tr>
+<tr class="row-odd"><td>graphite.prefix arg (=petrel)</td>
+<td>The name prefix for metrics send to graphite. A metric name will</td>
+</tr>
+<tr class="row-even"><td></td>
+<td>be constructed as follows: &lt;prefix&gt;.&lt;hostname&gt;.&lt;metricname&gt;</td>
+</tr>
+</tbody>
+</table>
+<p>You can use group sections in a configuration file. For example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">[</span><span class="n">server</span><span class="p">]</span>
+<span class="n">listen</span><span class="o">=</span><span class="n">localhost</span>
+<span class="n">port</span><span class="o">=</span><span class="mi">8585</span>
+<span class="n">http2</span><span class="o">=</span><span class="mi">1</span>
+
+<span class="p">[</span><span class="n">log</span><span class="p">]</span>
+<span class="n">syslog</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>The above is equivalent to passing <em>&#8220;&#8211;server.listen=localhost &#8211;server.port=8585 &#8211;server.http2 &#8211;log.syslog&#8221;</em> via commandline.</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="request_handler.html" class="btn btn-neutral float-right" title="A Request Handler" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation_guide.html" class="btn btn-neutral" title="Installation Guide" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

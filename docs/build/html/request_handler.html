@@ -1,0 +1,310 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>A Request Handler</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="next" title="Builtin Libraries" href="builtin_libs.html"/>
+        <link rel="prev" title="Configuration Options" href="config_options.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">A Request Handler</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#request-object">Request Object</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#response-object">Response Object</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>A Request Handler</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="a-request-handler">
+<h1>A Request Handler<a class="headerlink" href="#a-request-handler" title="Permalink to this headline">¶</a></h1>
+<p>To make your service work you have to write and install request handlers. A request handler is a LUA function with the following signature:</p>
+<dl class="function">
+<dt id="handler">
+<code class="descname">handler</code><span class="sig-paren">(</span><em>request</em>, <em>response</em><span class="sig-paren">)</span><a class="headerlink" href="#handler" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>request</strong> (<em>table</em>) &#8211; The request object</li>
+<li><strong>response</strong> (<em>table</em>) &#8211; The response object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">(<em>table</em>) - The response object</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre>function myhandler(request, response)
+    -- debug the incoming request
+    print(LOG_DEBUG, request)
+
+    response.content = &quot;&lt;html&gt;&lt;body&gt;the path was: &quot; .. request.path .. &quot;&lt;/body&gt;&lt;/html&gt;&quot;
+    response.headers[&quot;content-type&quot;] = &quot;text/html&quot;
+
+    return response
+end
+</pre></div>
+</div>
+</dd></dl>
+
+<div class="section" id="request-object">
+<h2>Request Object<a class="headerlink" href="#request-object" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="39%" />
+<col width="61%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Member</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>path</td>
+<td>Path of the request</td>
+</tr>
+<tr class="row-odd"><td>method</td>
+<td>HTTP method (GET, POST, ...)</td>
+</tr>
+<tr class="row-even"><td>proto</td>
+<td>Either http or https</td>
+</tr>
+<tr class="row-odd"><td>host</td>
+<td>HTTP host header</td>
+</tr>
+<tr class="row-even"><td>timestamp</td>
+<td>Request timestamp</td>
+</tr>
+<tr class="row-odd"><td>headers</td>
+<td>Table of HTTP headers</td>
+</tr>
+<tr class="row-even"><td>cookies</td>
+<td>Table of cookies</td>
+</tr>
+<tr class="row-odd"><td>remote_addr_str</td>
+<td>Client IP address</td>
+</tr>
+<tr class="row-even"><td>remote_addr_ip_ver</td>
+<td>Client IP version (4 or 6)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="response-object">
+<h2>Response Object<a class="headerlink" href="#response-object" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="docutils">
+<colgroup>
+<col width="42%" />
+<col width="58%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Member</th>
+<th class="head">Description</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>status</td>
+<td>HTTP response status code</td>
+</tr>
+<tr class="row-odd"><td>content</td>
+<td>Response content</td>
+</tr>
+<tr class="row-even"><td>headers</td>
+<td>Table of HTTP headers</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="builtin_libs.html" class="btn btn-neutral float-right" title="Builtin Libraries" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="config_options.html" class="btn btn-neutral" title="Configuration Options" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

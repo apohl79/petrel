@@ -1,0 +1,455 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>metric Library</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="up" title="Builtin Libraries" href="builtin_libs.html"/>
+        <link rel="next" title="petrel Library" href="lib_petrel.html"/>
+        <link rel="prev" title="http2_client Library" href="lib_http2_client.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="lib_base64.html">base64 Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lib_hash.html">hash Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lib_http_client.html">http_client Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="lib_http2_client.html">http2_client Library</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="">metric Library</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#counter">Counter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#meter">Meter</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#timer">Timer</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="lib_petrel.html">petrel Library</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="builtin_libs.html">Builtin Libraries</a> &raquo;</li>
+      
+    <li>metric Library</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="metric-library">
+<h1>metric Library<a class="headerlink" href="#metric-library" title="Permalink to this headline">¶</a></h1>
+<p>The metric library provides access to petrel&#8217;s builtin metrics.</p>
+<div class="section" id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
+<p>Usage in LUA:</p>
+<div class="highlight-python"><div class="highlight"><pre>counter = metric()
+counter:register_counter(&quot;mycounter&quot;)
+counter:increment()
+counter:decrement()
+print(LOG_DEBUG, counter:total())
+
+meter = metric()
+meter:register_meter(&quot;mymeter&quot;)
+meter:increment()
+
+timer = metric()
+timer:register_timer(&quot;mytimer&quot;)
+timer:update(1.25)
+timer:start_duration()
+&lt;some code you want to measure&gt;
+timer:update_duration()
+&lt;more code you want to measure&gt;
+timer:finish_duration()
+</pre></div>
+</div>
+<dl class="method">
+<dt id="metric">
+<code class="descname">metric</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#metric" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor. After creating a metric object it has to be associated with a metric by calling one of the register_* or get_* methods.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="counter">
+<h2>Counter<a class="headerlink" href="#counter" title="Permalink to this headline">¶</a></h2>
+<p>This metric is a simple counter that can be incremented or decremented.</p>
+<dl class="method">
+<dt id="register_counter">
+<code class="descname">register_counter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#register_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register (create) a new counter metric or load an existing one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="get_counter">
+<code class="descname">get_counter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#get_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an existing metric.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="increment">
+<code class="descname">increment</code><span class="sig-paren">(</span><span class="optional">[</span><em>value = 1</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#increment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Increment the counter by the given value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>integer</em>) &#8211; The value to increment. The default is 1.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="decrement">
+<code class="descname">decrement</code><span class="sig-paren">(</span><span class="optional">[</span><em>value = 1</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#decrement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decrement the counter by the given value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>integer</em>) &#8211; The value to decrement. The default is 1.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="total">
+<code class="descname">total</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#total" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(<em>integer</em>) - The total value of the counter.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reset the counter to 0.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="meter">
+<h2>Meter<a class="headerlink" href="#meter" title="Permalink to this headline">¶</a></h2>
+<p>A meter can be used to measure rates very efficiently. Petrel uses it to measure the requests per seconds for example. It supports rates over 1min, 5min, 15min and 1hr intervals by implementing EWMA (see: <cite>&lt;https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average&gt;</cite>).</p>
+<dl class="method">
+<dt id="register_meter">
+<code class="descname">register_meter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#register_meter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register (create) a new meter metric or load an existing one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="get_meter">
+<code class="descname">get_meter</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#get_meter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an existing metric.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<code class="descname">increment</code><span class="sig-paren">(</span><span class="optional">[</span><em>value = 1</em><span class="optional">]</span><span class="sig-paren">)</span></dt>
+<dd><p>Update the meter with the given value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>integer</em>) &#8211; The value to increment. The default is 1.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">total</code><span class="sig-paren">(</span><span class="sig-paren">)</span></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">(<em>integer</em>) - The total value of the meter.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="timer">
+<h2>Timer<a class="headerlink" href="#timer" title="Permalink to this headline">¶</a></h2>
+<p>A timer can be used to perform time measurements. It uses histograms internally to calculate the distribution of the measured times.</p>
+<dl class="method">
+<dt id="register_timer">
+<code class="descname">register_timer</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#register_timer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Register (create) a new counter metric or load an existing one.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="get_timer">
+<code class="descname">get_timer</code><span class="sig-paren">(</span><em>name</em><span class="sig-paren">)</span><a class="headerlink" href="#get_timer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an existing metric.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> (<em>string</em>) &#8211; The name of the metric to register or load.</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt id="update">
+<code class="descname">update</code><span class="sig-paren">(</span><em>value</em><span class="sig-paren">)</span><a class="headerlink" href="#update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the timer with the given value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>value</strong> (<em>number</em>) &#8211; The value to update.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="start_duration">
+<code class="descname">start_duration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#start_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Start a time measurement.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="update_duration">
+<code class="descname">update_duration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#update_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure the time between now and the last call to <a class="reference internal" href="#update_duration" title="update_duration"><code class="xref py py-func docutils literal"><span class="pre">update_duration()</span></code></a> or <a class="reference internal" href="#start_duration" title="start_duration"><code class="xref py py-func docutils literal"><span class="pre">start_duration()</span></code></a> and update the timer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="finish_duration">
+<code class="descname">finish_duration</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#finish_duration" title="Permalink to this definition">¶</a></dt>
+<dd><p>Measure the time between now and the last call to <a class="reference internal" href="#update_duration" title="update_duration"><code class="xref py py-func docutils literal"><span class="pre">update_duration()</span></code></a> or <a class="reference internal" href="#start_duration" title="start_duration"><code class="xref py py-func docutils literal"><span class="pre">start_duration()</span></code></a> and update the timer. No further measurements can be done before calling <a class="reference internal" href="#start_duration" title="start_duration"><code class="xref py py-func docutils literal"><span class="pre">start_duration()</span></code></a> again.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="lib_petrel.html" class="btn btn-neutral float-right" title="petrel Library" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="lib_http2_client.html" class="btn btn-neutral" title="http2_client Library" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

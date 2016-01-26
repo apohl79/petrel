@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="next" title="Installation Guide" href="installation_guide.html"/>
+        <link rel="prev" title="petrel - Documentation" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">Getting Started</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#bootstrap">Bootstrap</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#request-handlers">Request Handlers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuration">Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-the-service">Running the service</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sending-requests-to-the-service">Sending Requests to the Service</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Getting Started</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>This guide describes how you can setup a simple service with petrel.</p>
+<p>It is assumed that you have installed petrel already. If not, please follow the <a class="reference internal" href="installation_guide.html"><em>Installation Guide</em></a>.</p>
+<p>A service works as follwos:</p>
+<ul class="simple">
+<li>You provide request handler functions in LUA (see <a class="reference internal" href="request_handler.html"><em>A Request Handler</em></a>).</li>
+<li>You setup routes for your handlers via <a class="reference internal" href="lib_petrel.html#petrel.set_route" title="petrel.set_route"><code class="xref py py-func docutils literal"><span class="pre">petrel.set_route()</span></code></a> (see <a class="reference internal" href="lib_petrel.html"><em>petrel Library</em></a>).</li>
+<li>Petrel routes requests to your handlers and the responses back to the clients.</li>
+<li>Within the handlers you can use builtin or external native libraries to implement your service.</li>
+</ul>
+<p>The very first thing you should do, is to create a project directory:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cd /tmp
+$ mkdir myservice
+$ cd myservice
+</pre></div>
+</div>
+<div class="section" id="bootstrap">
+<h2>Bootstrap<a class="headerlink" href="#bootstrap" title="Permalink to this headline">¶</a></h2>
+<p>When petrel gets started, it will load the lua code that you put into your project directory. You have to tell petrel where your project root is located by the configuration option lua.root (see <a class="reference internal" href="config_options.html"><em>Configuration Options</em></a>). For a file to be loaded it has to have the <em>.lua</em> extension. You can use as many files and subdirectories to structure your code as you wish.</p>
+<p>The first thing after loading your code is to configure the server. You have to provide a function called <strong>bootstrap()</strong>. This function will be called to setup the router which purpose it is to pass requests to their handler function. We create a dedicated file for it and name it <em>bootstrap.lua</em>. We put the following content into it:</p>
+<div class="highlight-python"><div class="highlight"><pre>function bootstrap()
+    petrel.set_route(&quot;/json/&quot;, &quot;json_handler&quot;)
+    petrel.set_route(&quot;/text/&quot;, &quot;text_handler&quot;)
+end
+</pre></div>
+</div>
+<p>We setup two request handlers for our service. The <em>json_handler</em> will return a JSON result and the <em>text_handler</em> a result in plain text form.</p>
+</div>
+<div class="section" id="request-handlers">
+<h2>Request Handlers<a class="headerlink" href="#request-handlers" title="Permalink to this headline">¶</a></h2>
+<p>Now we create a file for each handler. Both handlers will do the same thing:</p>
+<ol class="arabic simple">
+<li>They will take the incoming path,</li>
+<li>append the total number of requests to it,</li>
+<li>encode it using the base64 builtin lib and</li>
+<li>return the encoded string either in JSON format or plain text.</li>
+</ol>
+<p>The <em>json_handler</em> function goes into the file <em>json_handler.lua</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre>function json_handler(request, response)
+    -- create/load the counter metric
+    req_counter = metric()
+    req_counter:register_counter(&quot;req_counter&quot;)
+    req_counter:increment()
+
+    plain = request.path .. &quot;:&quot; .. req_counter:total()
+    encoded = base64.encode(plain)
+
+    response.headers[&quot;content-type&quot;] = &quot;application/json&quot;
+    response.content =
+        &quot;{\n&quot; ..
+        &quot;  \&quot;plain\&quot;:\&quot;&quot; .. plain .. &quot;\&quot;,\n&quot; ..
+        &quot;  \&quot;encoded\&quot;:\&quot;&quot; .. encoded .. &quot;\&quot;\n&quot; ..
+        &quot;}\n&quot;
+
+    return response
+end
+</pre></div>
+</div>
+<p>The <em>text_handler</em> function goes into the file <em>text_handler.json</em>:</p>
+<div class="highlight-python"><div class="highlight"><pre>function text_handler(request, response)
+    -- create/load the counter metric
+    req_counter = metric()
+    req_counter:register_counter(&quot;req_counter&quot;)
+    req_counter:increment()
+
+    plain = request.path .. &quot;:&quot; .. req_counter:total()
+    encoded = base64.encode(plain)
+
+    response.headers[&quot;content-type&quot;] = &quot;text/plain&quot;
+    response.content =
+        &quot;plain: &quot; .. plain .. &quot;\n&quot; ..
+        &quot;encoded: &quot; .. encoded .. &quot;\n&quot;
+
+    return response
+end
+</pre></div>
+</div>
+</div>
+<div class="section" id="configuration">
+<h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
+<p>To start the service we will create a configuration file. This will setup basic things like where to find the lua code, the listen port etc.</p>
+<p>Create a file named <em>petrel.conf</em> in your project directory with the following content:</p>
+<div class="highlight-python"><div class="highlight"><pre>[server]
+listen=localhost
+port=8585
+
+[lua]
+root=/tmp/myservice
+</pre></div>
+</div>
+<p>It will tell petrel to listen on port <em>8585</em> and bind to <em>localhost</em> as well where to find your code.</p>
+</div>
+<div class="section" id="running-the-service">
+<h2>Running the service<a class="headerlink" href="#running-the-service" title="Permalink to this headline">¶</a></h2>
+<p>Now you can run petrel:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ petrel -c /tmp/petrel.conf
+</pre></div>
+</div>
+<p>You should see the following output:</p>
+<div class="highlight-python"><div class="highlight"><pre>Jan 25 18:54:01 | resolver_cache |       info | using DNS cache TTL of 5 minutes
+Jan 25 18:54:01 |         server |       info | running 1 workers
+Jan 25 18:54:01 |     lua_engine |       info | loading lua directory: /tmp/myservice
+Jan 25 18:54:01 |     lua_engine |       info |   found /tmp/myservice/text_handler.lua
+Jan 25 18:54:01 |     lua_engine |       info |   found /tmp/myservice/bootstrap.lua
+Jan 25 18:54:01 |     lua_engine |       info |   found /tmp/myservice/json_handler.lua
+Jan 25 18:54:01 |     lua_engine |       info | running bootstrap
+Jan 25 18:54:01 |         server |       info |   new route: /json/ -&gt; json_handler
+Jan 25 18:54:01 |         server |       info |   new route: /text/ -&gt; text_handler
+Jan 25 18:54:01 |     lua_engine |       info | registered libraries
+Jan 25 18:54:01 |     lua_engine |       info |   base64
+Jan 25 18:54:01 |     lua_engine |       info |   hash
+Jan 25 18:54:01 |     lua_engine |       info |   http2_client
+Jan 25 18:54:01 |     lua_engine |       info |   http_client
+Jan 25 18:54:01 |     lua_engine |       info |   metric
+Jan 25 18:54:01 |     lua_engine |       info |   petrel
+Jan 25 18:54:01 |     lua_engine |       info | initializing state buffer
+Jan 25 18:54:01 |         server |     notice | http server listening on localhost:8585
+</pre></div>
+</div>
+<p>It shows that our handlers got loaded and bootstrap registered them. We are ready to go now.</p>
+</div>
+<div class="section" id="sending-requests-to-the-service">
+<h2>Sending Requests to the Service<a class="headerlink" href="#sending-requests-to-the-service" title="Permalink to this headline">¶</a></h2>
+<p>We can use curl to fire some test requests to our new service:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl &quot;http://localhost:8585/json/foo=bar&quot;
+{
+  &quot;plain&quot;:&quot;/json/foo=bar:1&quot;,
+  &quot;encoded&quot;:&quot;L2pzb24vZm9vPWJhcjox&quot;
+}
+
+$ curl &quot;http://localhost:8585/text/foo=bar&quot;
+plain: /text/foo=bar:2
+encoded: L3RleHQvZm9vPWJhcjoy
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation_guide.html" class="btn btn-neutral float-right" title="Installation Guide" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="petrel - Documentation" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

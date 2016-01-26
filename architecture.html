@@ -16,13 +16,13 @@
     <header>
       <div class="container">
         <h1>petrel</h1>
-        <h2>An HTTP/1 and HTTP/2 webserver providing a C++/lua framework for easy micro/web service development.</h2>
+        <h2>A web server with HTTP/1 and HTTP/2 support that provides a C++/lua framework for easy micro/web service development.</h2>
 
         <section id="downloads">
           <a href="https://github.com/apohl79/petrel/zipball/master" class="btn">Download as .zip</a>
           <a href="https://github.com/apohl79/petrel/tarball/master" class="btn">Download as .tar.gz</a>
           <a href="https://github.com/apohl79/petrel" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
-          <a href="https://github.com/apohl79/petrel" class="btn btn-github"><span class="icon"></span>Documentation</a>
+          <a href="docs/build/index.html" class="btn"><span class="icon"></span>Documentation</a>
         </section>
       </div>
     </header>
@@ -52,10 +52,10 @@
 <p>The core layer is responsible for running the web server and executing the lua code and it's interaction with native code. It provides:</p>
 
 <ul>
-  <li>HTTP server: setting up an http/http2 server, loading the handler routing table (router) and routing requests to the installed request handlers</li>
+  <li>HTTP server: http/http2 protocols, loading the handler routing table (router) to pass requests to the installed request handlers</li>
   <li>Lua environment: loading builtin and external native libraries, loading/executing the users lua code</li>
-  <li>Metrics: providing a metrics interface (registry) and metrics implementations (meter, timer, counter)</li>
-  <li>DNS cache: a boost resolver compatible interface to cache DNS lookups</li>
+  <li>Metrics: providing a metrics interface (registry) and metrics implementations (meter, timer, counter) with graphite support</li>
+  <li>DNS cache: a boost.asio resolver compatible interface to cache DNS lookups</li>
   <li>Logging: interface for level based logging to the console or syslog</li>
 </ul>
 

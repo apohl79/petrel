@@ -4,7 +4,7 @@ Builtin Libraries
 Petrel comes with a set of builtin libraries that can be used from LUA.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
    lib_base64
    lib_hash

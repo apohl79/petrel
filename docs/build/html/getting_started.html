@@ -94,6 +94,8 @@
 <li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
 <li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="native_libs.html">Native Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lib_howto.html">Native Library Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
 </ul>
 
@@ -155,16 +157,16 @@ $ cd myservice
 </pre></div>
 </div>
 <div class="section" id="bootstrap">
-<h2>Bootstrap<a class="headerlink" href="#bootstrap" title="Permalink to this headline">¶</a></h2>
-<p>When petrel gets started, it will load the lua code that you put into your project directory. You have to tell petrel where your project root is located by the configuration option lua.root (see <a class="reference internal" href="config_options.html"><em>Configuration Options</em></a>). For a file to be loaded it has to have the <em>.lua</em> extension. You can use as many files and subdirectories to structure your code as you wish.</p>
-<p>The first thing after loading your code is to configure the server. You have to provide a function called <strong>bootstrap()</strong>. This function will be called to setup the router which purpose it is to pass requests to their handler function. We create a dedicated file for it and name it <em>bootstrap.lua</em>. We put the following content into it:</p>
+<span id="id1"></span><h2>Bootstrap<a class="headerlink" href="#bootstrap" title="Permalink to this headline">¶</a></h2>
+<p>When petrel gets started, it will load the lua code that you put into your project directory. You have to tell petrel where your project root is located by the configuration option lua.root (see <a class="reference internal" href="config_options.html"><em>Configuration Options</em></a>). For a file to be loaded it has to have the <code class="docutils literal"><span class="pre">.lua</span></code> extension. You can use as many files and subdirectories to structure your code as you wish.</p>
+<p>The first thing after loading your code is to configure the server. You have to provide a function called <code class="docutils literal"><span class="pre">bootstrap()</span></code>. This function will be called to setup the router which purpose it is to pass requests to their handler function. We create a dedicated file for it and name it <code class="docutils literal"><span class="pre">bootstrap.lua</span></code>. We put the following content into it:</p>
 <div class="highlight-python"><div class="highlight"><pre>function bootstrap()
     petrel.set_route(&quot;/json/&quot;, &quot;json_handler&quot;)
     petrel.set_route(&quot;/text/&quot;, &quot;text_handler&quot;)
 end
 </pre></div>
 </div>
-<p>We setup two request handlers for our service. The <em>json_handler</em> will return a JSON result and the <em>text_handler</em> a result in plain text form.</p>
+<p>We setup two request handlers for our service. The <code class="docutils literal"><span class="pre">json_handler</span></code> will return a JSON result and the <code class="docutils literal"><span class="pre">text_handler</span></code> a result in plain text form.</p>
 </div>
 <div class="section" id="request-handlers">
 <h2>Request Handlers<a class="headerlink" href="#request-handlers" title="Permalink to this headline">¶</a></h2>
@@ -175,7 +177,7 @@ end
 <li>encode it using the base64 builtin lib and</li>
 <li>return the encoded string either in JSON format or plain text.</li>
 </ol>
-<p>The <em>json_handler</em> function goes into the file <em>json_handler.lua</em>:</p>
+<p>The <code class="docutils literal"><span class="pre">json_handler()</span></code> function goes into the file <code class="docutils literal"><span class="pre">json_handler.lua</span></code>:</p>
 <div class="highlight-python"><div class="highlight"><pre>function json_handler(request, response)
     -- create/load the counter metric
     req_counter = metric()
@@ -196,7 +198,7 @@ end
 end
 </pre></div>
 </div>
-<p>The <em>text_handler</em> function goes into the file <em>text_handler.json</em>:</p>
+<p>The <code class="docutils literal"><span class="pre">text_handler()</span></code> function goes into the file <code class="docutils literal"><span class="pre">text_handler.json</span></code>:</p>
 <div class="highlight-python"><div class="highlight"><pre>function text_handler(request, response)
     -- create/load the counter metric
     req_counter = metric()
@@ -219,7 +221,7 @@ end
 <div class="section" id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Permalink to this headline">¶</a></h2>
 <p>To start the service we will create a configuration file. This will setup basic things like where to find the lua code, the listen port etc.</p>
-<p>Create a file named <em>petrel.conf</em> in your project directory with the following content:</p>
+<p>Create a file named <code class="docutils literal"><span class="pre">petrel.conf</span></code> in your project directory with the following content:</p>
 <div class="highlight-python"><div class="highlight"><pre>[server]
 listen=localhost
 port=8585
@@ -228,12 +230,12 @@ port=8585
 root=/tmp/myservice
 </pre></div>
 </div>
-<p>It will tell petrel to listen on port <em>8585</em> and bind to <em>localhost</em> as well where to find your code.</p>
+<p>It will tell petrel to listen on port <code class="docutils literal"><span class="pre">8585</span></code> and bind to <code class="docutils literal"><span class="pre">localhost</span></code> as well where to find your code.</p>
 </div>
 <div class="section" id="running-the-service">
 <h2>Running the service<a class="headerlink" href="#running-the-service" title="Permalink to this headline">¶</a></h2>
 <p>Now you can run petrel:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ petrel -c /tmp/petrel.conf
+<div class="highlight-python"><div class="highlight"><pre>$ petrel -c /tmp/myservice/petrel.conf
 </pre></div>
 </div>
 <p>You should see the following output:</p>

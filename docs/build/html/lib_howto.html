@@ -1,0 +1,349 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Native Library Tutorial</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="None" href="index.html"/>
+        <link rel="next" title="License" href="license.html"/>
+        <link rel="prev" title="Native Libraries" href="native_libs.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> petrel
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.1.0
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
+<li class="toctree-l1"><a class="reference internal" href="native_libs.html">Native Libraries</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Native Library Tutorial</a></li>
+<li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">petrel</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>Native Library Tutorial</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="native-library-tutorial">
+<h1>Native Library Tutorial<a class="headerlink" href="#native-library-tutorial" title="Permalink to this headline">¶</a></h1>
+<p>This tutorial will explain how to write a native library and load it into petrel.</p>
+<p>To implement a library class we inherit from <code class="docutils literal"><span class="pre">petrel::lib::library</span></code> (see <a class="reference internal" href="native_libs.html"><em>Native Libraries</em></a>). The header file <code class="docutils literal"><span class="pre">mylib.h</span></code> looks as follows:</p>
+<div class="highlight-cpp"><div class="highlight"><pre><span class="cp">#ifndef MYLIB_H</span>
+<span class="cp">#define MYLIB_H</span>
+
+<span class="cp">#include</span> <span class="cpf">&lt;petrel.h&gt;</span><span class="cp"></span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">petrel</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">petrel</span><span class="o">::</span><span class="n">lib</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">boost</span><span class="o">::</span><span class="n">asio</span><span class="p">;</span>
+
+<span class="k">class</span> <span class="nc">mylib</span> <span class="o">:</span> <span class="k">public</span> <span class="n">library</span> <span class="p">{</span>
+  <span class="k">public</span><span class="o">:</span>
+    <span class="n">mylib</span><span class="p">(</span><span class="n">lib_context</span><span class="o">*</span> <span class="n">ctx</span><span class="p">)</span> <span class="o">:</span> <span class="n">library</span><span class="p">(</span><span class="n">ctx</span><span class="p">),</span> <span class="n">m_sock</span><span class="p">(</span><span class="n">m_iosvc</span><span class="p">)</span> <span class="p">{}</span>
+    <span class="kt">int</span> <span class="n">connect</span><span class="p">(</span><span class="n">lua_State</span><span class="o">*</span> <span class="n">L</span><span class="p">);</span>
+    <span class="kt">int</span> <span class="nf">send_and_receive</span><span class="p">(</span><span class="n">lua_State</span><span class="o">*</span> <span class="n">L</span><span class="p">);</span>
+
+  <span class="k">private</span><span class="o">:</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_host</span><span class="p">;</span>
+    <span class="n">std</span><span class="o">::</span><span class="n">string</span> <span class="n">m_port</span><span class="p">;</span>
+    <span class="n">ip</span><span class="o">::</span><span class="n">tcp</span><span class="o">::</span><span class="n">socket</span> <span class="n">m_sock</span><span class="p">;</span>
+    <span class="kt">bool</span> <span class="n">m_connected</span> <span class="o">=</span> <span class="nb">false</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="cp">#endif  </span><span class="c1">// MYLIB_H</span>
+</pre></div>
+</div>
+<p>Our library will have two member functions <code class="docutils literal"><span class="pre">connect</span></code> and <code class="docutils literal"><span class="pre">send_and_receive</span></code>.</p>
+<p>The implementation goes into <code class="docutils literal"><span class="pre">mylib.cpp</span></code>. Here we declare the library for the library loader and implement our methods:</p>
+<div class="highlight-cpp"><div class="highlight"><pre><span class="cp">#include</span> <span class="cpf">&quot;mylib.h&quot;</span><span class="cp"></span>
+
+<span class="n">DECLARE_LIB_BEGIN</span><span class="p">(</span><span class="n">mylib</span><span class="p">);</span>
+<span class="n">ADD_LIB_METHOD</span><span class="p">(</span><span class="n">connect</span><span class="p">);</span>
+<span class="n">ADD_LIB_METHOD</span><span class="p">(</span><span class="n">send_and_receive</span><span class="p">);</span>
+<span class="n">DECLARE_LIB_END</span><span class="p">();</span>
+
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">boost</span><span class="o">::</span><span class="n">system</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">boost</span><span class="o">::</span><span class="n">fibers</span><span class="p">;</span>
+<span class="k">using</span> <span class="k">namespace</span> <span class="n">boost</span><span class="o">::</span><span class="n">fibers</span><span class="o">::</span><span class="n">asio</span><span class="p">;</span>
+
+<span class="kt">int</span> <span class="n">mylib</span><span class="o">::</span><span class="n">connect</span><span class="p">(</span><span class="n">lua_State</span><span class="o">*</span> <span class="n">L</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">m_host</span> <span class="o">=</span> <span class="n">luaL_checkstring</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span>
+    <span class="n">m_port</span> <span class="o">=</span> <span class="n">luaL_checkstring</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">2</span><span class="p">);</span>
+    <span class="k">using</span> <span class="n">ip</span><span class="o">::</span><span class="n">tcp</span><span class="p">;</span>
+    <span class="k">try</span> <span class="p">{</span>
+        <span class="k">auto</span><span class="o">&amp;</span> <span class="n">resolver</span> <span class="o">=</span> <span class="n">context</span><span class="p">().</span><span class="n">server</span><span class="p">().</span><span class="n">get_resolver_cache</span><span class="p">();</span>
+        <span class="k">auto</span> <span class="n">ep_iter</span> <span class="o">=</span> <span class="n">resolver</span><span class="p">.</span><span class="n">async_resolve</span><span class="o">&lt;</span><span class="n">resolver_cache</span><span class="o">::</span><span class="n">tcp</span><span class="o">&gt;</span><span class="p">(</span><span class="n">io_service</span><span class="p">(),</span>
+                                                                   <span class="n">m_host</span><span class="p">,</span>
+                                                                   <span class="n">m_port</span><span class="p">,</span>
+                                                                   <span class="n">yield</span><span class="p">);</span>
+        <span class="n">async_connect</span><span class="p">(</span><span class="n">m_sock</span><span class="p">,</span> <span class="n">ep_iter</span><span class="p">,</span> <span class="n">yield</span><span class="p">);</span>
+    <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">system_error</span><span class="o">&amp;</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">luaL_error</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s">&quot;connect failed: %s&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">.</span><span class="n">what</span><span class="p">());</span>
+    <span class="p">}</span>
+    <span class="n">m_connected</span> <span class="o">=</span> <span class="nb">true</span><span class="p">;</span>
+    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// no results</span>
+<span class="p">}</span>
+
+<span class="kt">int</span> <span class="n">mylib</span><span class="o">::</span><span class="n">send_and_receive</span><span class="p">(</span><span class="n">lua_State</span><span class="o">*</span> <span class="n">L</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">boost</span><span class="o">::</span><span class="n">string_ref</span> <span class="n">data</span><span class="p">(</span><span class="n">luaL_checkstring</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="mi">1</span><span class="p">));</span>
+    <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="n">m_connected</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">luaL_error</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s">&quot;not connected&quot;</span><span class="p">);</span>
+    <span class="p">}</span>
+    <span class="n">error_code</span> <span class="n">ec</span><span class="p">;</span>
+    <span class="n">async_write</span><span class="p">(</span><span class="n">m_sock</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="n">data</span><span class="p">.</span><span class="n">data</span><span class="p">(),</span> <span class="n">data</span><span class="p">.</span><span class="n">size</span><span class="p">()),</span> <span class="n">yield</span><span class="p">[</span><span class="n">ec</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ec</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">luaL_error</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s">&quot;write failed: %s&quot;</span><span class="p">,</span> <span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+    <span class="p">}</span>
+    <span class="kt">char</span> <span class="n">buf</span><span class="p">[</span><span class="mi">1024</span><span class="p">];</span>
+    <span class="k">auto</span> <span class="n">n</span> <span class="o">=</span> <span class="n">async_read</span><span class="p">(</span><span class="n">m_sock</span><span class="p">,</span> <span class="n">buffer</span><span class="p">(</span><span class="n">buf</span><span class="p">,</span> <span class="k">sizeof</span><span class="p">(</span><span class="n">buf</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="n">yield</span><span class="p">[</span><span class="n">ec</span><span class="p">]);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">ec</span> <span class="o">&amp;&amp;</span> <span class="n">ec</span> <span class="o">!=</span> <span class="n">error</span><span class="o">::</span><span class="n">eof</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">luaL_error</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="s">&quot;read failed: %s&quot;</span><span class="p">,</span> <span class="n">ec</span><span class="p">.</span><span class="n">message</span><span class="p">().</span><span class="n">c_str</span><span class="p">());</span>
+    <span class="p">}</span>
+    <span class="n">buf</span><span class="p">[</span><span class="n">n</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="n">lua_pushstring</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">buf</span><span class="p">);</span>
+    <span class="k">return</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// 1 result</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Our service will connect an endpoint, send whatever data we pass from LUA, receive a response and pass it back to LUA. We use boost.asio for the async IO operations. <code class="docutils literal"><span class="pre">yield</span></code> is passed as a callback handler which will block the running fiber until the operation completes and will resume it afterwards. Please have a look at the documentation of <a class="reference external" href="https://olk.github.io/libs/fiber/doc/html/fiber/callbacks.html">boost.fiber</a> (specifically section &#8220;Then There&#8217;s Boost.Asio&#8221;).</p>
+<p>You also see how parameter passing and returning values works with LUA&#8217;s C API. For more information read the <a class="reference external" href="http://www.lua.org/manual/5.3/manual.html#4">LUA Reference Manual</a>.</p>
+<p>Now we need compile our code and link it into a shared library. Create a <code class="docutils literal"><span class="pre">CMakeLists.txt</span></code> file:</p>
+<div class="highlight-python"><div class="highlight"><pre>project(petrel_mylib)
+cmake_minimum_required(VERSION 2.8)
+
+find_package(PkgConfig)
+pkg_check_modules(PETREL petrel REQUIRED)
+find_package(Boost 1.59.0)
+
+set(CMAKE_CXX_FLAGS &quot;-Wall -Wextra -Wlong-long -Wmissing-braces -g -std=c++11&quot;)
+
+include_directories(${PETREL_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
+
+link_directories(${PETREL_LIBRARY_DIRS})
+link_directories(${Boost_LIBRARY_DIRS})
+
+aux_source_directory(. SOURCES)
+
+add_library(${PROJECT_NAME} SHARED ${SOURCES})
+target_link_libraries(${PROJECT_NAME} ${PETREL_LIBRARIES})
+</pre></div>
+</div>
+<p>and run:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ mkdir build
+$ cd build
+$ cmake -DBOOST_ROOT=/usr/local/boost_head ..
+$ make
+</pre></div>
+</div>
+<p>Note the <code class="docutils literal"><span class="pre">BOOST_ROOT</span></code> parameter. You need to make sure that you use the same boost version as you used to build petrel. (see <a class="reference internal" href="installation_guide.html"><em>Installation Guide</em></a>)</p>
+<p>You should find the file <code class="docutils literal"><span class="pre">libpetrel_mylib.so</span></code> in your build directory.</p>
+<p>To make petrel load our library we have to update our <code class="docutils literal"><span class="pre">bootstrap()</span></code> function (see <a class="reference internal" href="getting_started.html#bootstrap"><span>Bootstrap</span></a>). The new version looks like this (assuming you have put your lib project into /tmp):</p>
+<div class="highlight-python"><div class="highlight"><pre>function bootstrap()
+    petrel.set_route(&quot;/json/&quot;, &quot;json_handler&quot;)
+    petrel.set_route(&quot;/text/&quot;, &quot;text_handler&quot;)
+
+    petrel.add_lib_search_path(&quot;/tmp/mylib/build&quot;)
+    petrel.load_lib(&quot;petrel_mylib&quot;)
+    petrel.set_route(&quot;/libtest/&quot;, &quot;libtest_handler&quot;)
+end
+</pre></div>
+</div>
+<p>We also add a new request handler <code class="docutils literal"><span class="pre">libtest_handler()</span></code> by creating <code class="docutils literal"><span class="pre">libtest_handler.lua</span></code>:</p>
+<div class="highlight-python"><div class="highlight"><pre>function libtest_handler(request, response)
+    inst = mylib()
+    inst:connect(&quot;github.com&quot;, &quot;80&quot;)
+    response.content = inst:send_and_receive(&quot;GET / HTTP/1.0\nhost: github.com\n\n&quot;)
+    return response
+end
+</pre></div>
+</div>
+<p>Now we use our library to send an HTTP request to github and receive the response. We just put the whole response back into the content field.</p>
+<p>After starting petrel with the new configuration, we can use curl to fire a request to our service:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl &quot;http://localhost:8585/libtest/&quot;
+HTTP/1.1 301 Moved Permanently
+Content-length: 0
+Location: https://github.com/
+Connection: close
+</pre></div>
+</div>
+<p>There we go. Github just sends a redirect to it&#8217;s https site. We see the plain HTTP response. This should give you an idea of how to build native libraries.</p>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="license.html" class="btn btn-neutral float-right" title="License" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="native_libs.html" class="btn btn-neutral" title="Native Libraries" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2016, Andreas Pohl.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.1.0',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

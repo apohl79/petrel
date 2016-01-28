@@ -18,6 +18,8 @@ Contents
    config_options
    request_handler
    builtin_libs
+   native_libs
+   lib_howto
    license
 
 

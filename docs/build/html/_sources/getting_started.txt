@@ -100,6 +100,8 @@ Create a file named ``petrel.conf`` in your project directory with the following
 
 It will tell petrel to listen on port ``8585`` and bind to ``localhost`` as well where to find your code.
 
+.. _running-the-service:
+
 Running the service
 -------------------
 

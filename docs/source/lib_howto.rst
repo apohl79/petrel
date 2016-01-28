@@ -90,7 +90,7 @@ Our service will connect an endpoint, send whatever data we pass from LUA, recei
 
 You also see how parameter passing and returning values works with LUA's C API. For more information read the `LUA Reference Manual <http://www.lua.org/manual/5.3/manual.html#4>`_.
 
-Now we need compile our code and link it into a shared library. Create a ``CMakeLists.txt`` file::
+Now we need to compile our code and link it into a shared library. Create a ``CMakeLists.txt`` file::
 
   project(petrel_mylib)
   cmake_minimum_required(VERSION 2.8)
@@ -145,7 +145,7 @@ We also add a new request handler ``libtest_handler()`` by creating ``libtest_ha
 
 Now we use our library to send an HTTP request to github and receive the response. We just put the whole response back into the content field.
 
-After starting petrel with the new configuration, we can use curl to fire a request to our service::
+After starting petrel with the new configuration (see :ref:`running-the-service`), we can use curl to fire a request to our service::
 
   $ curl "http://localhost:8585/libtest/"
   HTTP/1.1 301 Moved Permanently

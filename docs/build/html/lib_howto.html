@@ -215,7 +215,7 @@
 </div>
 <p>Our service will connect an endpoint, send whatever data we pass from LUA, receive a response and pass it back to LUA. We use boost.asio for the async IO operations. <code class="docutils literal"><span class="pre">yield</span></code> is passed as a callback handler which will block the running fiber until the operation completes and will resume it afterwards. Please have a look at the documentation of <a class="reference external" href="https://olk.github.io/libs/fiber/doc/html/fiber/callbacks.html">boost.fiber</a> (specifically section &#8220;Then There&#8217;s Boost.Asio&#8221;).</p>
 <p>You also see how parameter passing and returning values works with LUA&#8217;s C API. For more information read the <a class="reference external" href="http://www.lua.org/manual/5.3/manual.html#4">LUA Reference Manual</a>.</p>
-<p>Now we need compile our code and link it into a shared library. Create a <code class="docutils literal"><span class="pre">CMakeLists.txt</span></code> file:</p>
+<p>Now we need to compile our code and link it into a shared library. Create a <code class="docutils literal"><span class="pre">CMakeLists.txt</span></code> file:</p>
 <div class="highlight-python"><div class="highlight"><pre>project(petrel_mylib)
 cmake_minimum_required(VERSION 2.8)
 
@@ -267,7 +267,7 @@ end
 </pre></div>
 </div>
 <p>Now we use our library to send an HTTP request to github and receive the response. We just put the whole response back into the content field.</p>
-<p>After starting petrel with the new configuration, we can use curl to fire a request to our service:</p>
+<p>After starting petrel with the new configuration (see <span class="xref std std-ref">running-the-service</span>), we can use curl to fire a request to our service:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ curl &quot;http://localhost:8585/libtest/&quot;
 HTTP/1.1 301 Moved Permanently
 Content-length: 0

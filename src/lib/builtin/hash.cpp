@@ -19,11 +19,11 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(hash);
+DECLARE_LIB_BEGIN(hash);
 ADD_LIB_FUNCTION(md5);
 ADD_LIB_FUNCTION(sha1);
 ADD_LIB_FUNCTION(fnv);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 using evp_hash_type = std::array<std::uint8_t, EVP_MAX_MD_SIZE>;
 

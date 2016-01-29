@@ -53,7 +53,7 @@ class library {
 };
 
 /// Declare a class to be a library
-#define DECLARE_LIB(NAME)                                                         \
+#define DECLARE_LIB_BEGIN(NAME)                                                   \
     namespace {/* will be closed in REGISTER_LIB* */                              \
     using lib_type = NAME;                                                        \
     using lib_state_init_func_type = std::function<void(lua_State*)>;             \
@@ -201,7 +201,7 @@ class library {
 #define ADD_LIB_FUNCTION(FUNC) int FUNC##_f = lib_add_function(#FUNC, lib_type::FUNC)
 
 /// Register a class as builtin library
-#define REGISTER_LIB_BUILTIN()                                                        \
+#define DECLARE_LIB_BUILTIN_END()                                                     \
     int lib_register() {                                                              \
         lua_engine::register_lib(lib_name, lib_open, lib_init, lib_load, lib_unload); \
         lib_add_function("new", lib_new);                                             \
@@ -211,7 +211,7 @@ class library {
     }  // namespace opened in DECLARE_LIB
 
 /// Register a class as shared library
-#define REGISTER_LIB()                                                 \
+#define DECLARE_LIB_END()                                              \
     extern "C" {                                                       \
     const char* petrel_lib_name() { return lib_name; }                 \
     void petrel_lib_load() {                                           \

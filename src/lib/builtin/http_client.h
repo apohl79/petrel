@@ -32,7 +32,7 @@ class http_client : public library {
     char m_res_buf[8192];
     std::string m_host;
     std::string m_port;
-    bool m_connected;
+    bool m_connected = false;
 
     inline void close() {
         if (m_connected) {

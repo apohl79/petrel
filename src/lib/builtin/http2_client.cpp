@@ -15,13 +15,13 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(http2_client);
+DECLARE_LIB_BEGIN(http2_client);
 ADD_LIB_METHOD(connect);
 ADD_LIB_METHOD(disconnect);
 ADD_LIB_METHOD(get);
 ADD_LIB_METHOD(read_timeout);
 ADD_LIB_METHOD(connect_timeout);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 namespace ba = boost::asio;
 namespace bs = boost::system;

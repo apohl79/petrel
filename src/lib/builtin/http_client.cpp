@@ -15,17 +15,18 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <boost/utility/string_ref.hpp>
 #include <boost/fiber/all.hpp>
-#include "boost/fiber/yield.hpp"
+#include <petrel/fiber/yield.hpp>
 
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(http_client);
+DECLARE_LIB_BEGIN(http_client);
 ADD_LIB_METHOD(connect);
 ADD_LIB_METHOD(disconnect);
 ADD_LIB_METHOD(get);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 namespace bs = boost::system;
 namespace bf = boost::fibers;
@@ -57,7 +58,7 @@ int http_client::disconnect(lua_State*) {
 }
 
 int http_client::get(lua_State* L) {
-    std::string path(luaL_checkstring(L, 1));
+    boost::string_ref path(luaL_checkstring(L, 1));
 
     if (!m_connected) {
         luaL_error(L, "not connected");

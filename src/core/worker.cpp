@@ -5,13 +5,14 @@
  * Author: Andreas Pohl
  */
 
+#include <petrel/fiber/yield.hpp>
+
 #include "worker.h"
 #include "server.h"
 #include "server_impl.h"
 #include "options.h"
 #include "log.h"
 #include "fiber_sched_algorithm.h"
-#include "boost/fiber/yield.hpp"
 
 namespace petrel {
 

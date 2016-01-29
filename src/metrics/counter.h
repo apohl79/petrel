@@ -10,7 +10,7 @@
 
 #include <atomic>
 
-#include "basic_metric.h"
+#include <petrel/metrics/basic_metric.h>
 
 namespace petrel {
 namespace metrics {

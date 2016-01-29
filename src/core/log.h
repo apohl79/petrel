@@ -98,11 +98,11 @@ class log : public std::basic_streambuf<char, std::char_traits<char> > {
     static bool m_syslog;
     static int m_filter_priority;
 
-protected:
+  protected:
     int sync();
     int overflow(int c);
 
-private:
+  private:
     friend std::ostream& operator<<(std::ostream& os, const log_priority& priority);
     std::string m_buffer;
     int m_facility;
@@ -111,10 +111,10 @@ private:
 };
 
 /// Convinience helper macros
-#define decl_log_static()        \
+#define decl_log_static()                \
     static std::string __petrel_log_tag; \
     static int __petrel_log_prio
-#define init_log_static(T, P) \
+#define init_log_static(T, P)             \
     std::string T::__petrel_log_tag = #T; \
     int T::__petrel_log_prio = ::petrel::log::to_int(P)
 
@@ -124,7 +124,7 @@ private:
 #define get_log_tag_static(T) T::__petrel_log_tag
 #define update_log_tag(T) __petrel_log_tag = T
 
-#define set_log_priority(P)                             \
+#define set_log_priority(P) \
     int __petrel_log_prio { ::petrel::log::to_int(P) }
 #define get_log_priority() ::petrel::log::to_priority(__petrel_log_prio)
 #define get_log_priority_static(T) ::petrel::log::to_priority(T::__petrel_log_prio)
@@ -134,8 +134,8 @@ private:
     set_log_tag(T);                     \
     set_log_priority(::petrel::log_priority::info)
 
-#define log_base(P, M)                                                                      \
-    if (P <= ::petrel::log::m_filter_priority) {                                              \
+#define log_base(P, M)                                                                          \
+    if (P <= ::petrel::log::m_filter_priority) {                                                \
         std::clog << ::petrel::log_tag(__petrel_log_tag) << ::petrel::log::to_priority(P) << M; \
     }
 #define log_default(M) log_base(__petrel_log_prio, M << std::endl)

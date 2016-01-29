@@ -19,7 +19,8 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "log.h"
+#include <petrel/metrics/basic_metric.h>
+#include <petrel/core/log.h>
 
 namespace petrel {
 namespace metrics {

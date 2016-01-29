@@ -18,8 +18,8 @@
 #include <boost/core/noncopyable.hpp>
 #include <boost/asio.hpp>
 
-#include "basic_metric.h"
-#include "log.h"
+#include <petrel/metrics/basic_metric.h>
+#include <petrel/core/log.h>
 
 namespace petrel {
 

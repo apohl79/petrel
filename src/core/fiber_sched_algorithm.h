@@ -21,7 +21,7 @@
 #include <boost/fiber/operations.hpp>
 #include <boost/fiber/scheduler.hpp>
 
-#include "boost/fiber/yield.hpp"
+#include <petrel/fiber/yield.hpp>
 
 namespace petrel {
 

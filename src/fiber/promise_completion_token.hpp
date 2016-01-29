@@ -14,6 +14,7 @@
 #define BOOST_FIBERS_ASIO_PROMISE_COMPLETION_TOKEN_HPP
 
 #include <boost/config.hpp>
+#include <boost/asio.hpp>
 
 #ifdef BOOST_HAS_ABI_HEADERS
 #  include BOOST_ABI_PREFIX

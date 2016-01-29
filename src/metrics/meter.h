@@ -14,7 +14,7 @@
 
 #include <boost/fiber/all.hpp>
 
-#include "counter.h"
+#include <petrel/metrics/counter.h>
 
 namespace petrel {
 namespace metrics {

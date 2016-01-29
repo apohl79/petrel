@@ -9,12 +9,12 @@
 #include "options.h"
 #include "resolver_cache.h"
 #include "fiber_sched_algorithm.h"
-#include "boost/fiber/yield.hpp"
 
 #include <ostream>
 #include <ctime>
 
 #include <boost/fiber/all.hpp>
+#include <petrel/fiber/yield.hpp>
 
 namespace petrel {
 namespace metrics {

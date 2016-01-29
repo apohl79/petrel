@@ -20,6 +20,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(COMP_FLAGS "${COMP_FLAGS} -fdiagnostics-color=auto")
 endif()
 
+# FIXME: fiber causes unused-parameter warnings, so take it out for now
+set(COMP_FLAGS "${COMP_FLAGS} -Wno-unused-parameter")
+
 if(VALGRIND)
   set(COMP_FLAGS "${COMP_FLAGS} -DBOOST_USE_VALGRIND=1")
 endif()
@@ -27,6 +30,7 @@ endif()
 set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11")
 
+include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(../src)
 include_directories(../src/core)
 include_directories(../src/lib)

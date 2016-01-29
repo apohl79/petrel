@@ -68,6 +68,8 @@ class lua_engine : boost::noncopyable {
     // Add static log members
     decl_log_static();
 
+    using http2_content_buffer_type = std::vector<std::uint8_t>;
+
     /// Start a thread that watches the available lua states. It creates new states or updates the available states with
     /// new lua code.
     void start(server& srv);
@@ -95,7 +97,8 @@ class lua_engine : boost::noncopyable {
     void handle_http_request(const std::string& func, session::request_type::pointer req);
     /// Handle an incoming http2 request
     void handle_http_request(const std::string& func, const http2::server::request& req,
-                             const http2::server::response& res, server& srv);
+                             const http2::server::response& res, server& srv,
+                             std::shared_ptr<http2_content_buffer_type> content);
 
     /// Find scripts in a directory and it's sub directories
     static void load_script_dir(const std::string& dir, std::vector<std::string>& vec);
@@ -114,12 +117,12 @@ class lua_engine : boost::noncopyable {
     static void dump_stack(lua_State* L);
     /// Print a lua type at the given stack index
     static void print_type(lua_State* L, int i, log_priority prio, bool show_type_name = true,
-                          bool show_table_content = true);
+                           bool show_table_content = true, int max_table_depth = -1);
     /// Print a lua type at the given stack index (simple version)
     static void print_type_simple(lua_State* L, int i, log_priority prio, bool string_quotes = false,
-                                  bool show_table = false);
+                                  bool show_table = false, int max_table_depth = -1);
     /// Print a lua table at the given stack index
-    static void print_table(lua_State* L, int i, log_priority prio);
+    static void print_table(lua_State* L, int i, log_priority prio, int level = 0, int max_level = -1);
 
   private:
     /// List of script filenames to be loaded
@@ -173,7 +176,8 @@ class lua_engine : boost::noncopyable {
     /// Create a lua table object out of the http request and push it to the stack
     void push_http_request(lua_State* L, const session::request_type::pointer req);
     /// Create a lua table object out of the http2 request and push it to the stack
-    void push_http_request(lua_State* L, const http2::server::request& req, const std::string& path);
+    void push_http_request(lua_State* L, const http2::server::request& req, const std::string& path,
+                           std::shared_ptr<http2_content_buffer_type> content);
     /// Create an empty response lua table that has all required fields and some defaults
     void push_http_response(lua_State* L);
 

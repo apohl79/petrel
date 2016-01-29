@@ -40,7 +40,11 @@ inline void log_throw(lua_State* L, const std::string& path, std::initializer_li
         log_plain_noln(s << " ");
         os << s << " ";
     }
-    log_default("");
+    if (nullptr != L) {
+        log_plain("(enable log.level 7 to see the LUA stack)");
+    } else {
+        log_plain("");
+    }
     if (nullptr != L) {
         lua_engine::dump_stack(L);
     }
@@ -82,6 +86,7 @@ void lua_engine::start(server& srv) {
     m_statebuffer_counter = srv.get_metrics_registry().register_metric<metrics::counter>("lua_statebuffer");
     m_states_counter = srv.get_metrics_registry().register_metric<metrics::counter>("lua_states_created");
     fill_lua_state_buffer();
+    log_debug("created " << m_states_counter->get() << " states");
     m_states_watcher = std::thread([this] {
         while (!m_stop) {
             fill_lua_state_buffer();
@@ -354,7 +359,8 @@ void lua_engine::reload_lua_code() {
     }
 }
 
-void lua_engine::print_type(lua_State* L, int i, log_priority prio, bool show_type_name, bool show_table_content) {
+void lua_engine::print_type(lua_State* L, int i, log_priority prio, bool show_type_name, bool show_table_content,
+                            int max_table_depth) {
     set_log_priority(prio);
     if (lua_type(L, i) == LUA_TSTRING || lua_type(L, i) == LUA_TNUMBER) {
         print_type_simple(L, i, prio);
@@ -370,7 +376,7 @@ void lua_engine::print_type(lua_State* L, int i, log_priority prio, bool show_ty
         log_plain_noln(lua_topointer(L, i));
         if (show_table_content) {
             log_plain_noln(": ");
-            print_table(L, i, prio);
+            print_table(L, i, prio, 0, max_table_depth);
         }
     } else {
         if (show_type_name) {
@@ -380,7 +386,8 @@ void lua_engine::print_type(lua_State* L, int i, log_priority prio, bool show_ty
     }
 }
 
-void lua_engine::print_type_simple(lua_State* L, int i, log_priority prio, bool string_quotes, bool show_table) {
+void lua_engine::print_type_simple(lua_State* L, int i, log_priority prio, bool string_quotes, bool show_table,
+                                   int max_table_depth) {
     set_log_priority(prio);
     if (lua_type(L, i) == LUA_TSTRING) {
         if (string_quotes) {
@@ -396,14 +403,18 @@ void lua_engine::print_type_simple(lua_State* L, int i, log_priority prio, bool 
         } else {
             log_plain_noln(lua_tonumber(L, i));
         }
-    } else if (lua_type(L, i) == LUA_TTABLE && show_table) {
-        print_table(L, i, prio);
+    } else if (lua_type(L, i) == LUA_TTABLE) {
+        if (show_table) {
+            print_table(L, i, prio, 0, max_table_depth);
+        } else {
+            log_plain_noln("table...");
+        }
     } else {
         log_plain_noln(lua_typename(L, lua_type(L, i)));
     }
 }
 
-void lua_engine::print_table(lua_State* L, int i, log_priority prio) {
+void lua_engine::print_table(lua_State* L, int i, log_priority prio, int level, int max_level) {
     set_log_priority(prio);
     log_plain_noln(log_color::yellow << "{" << log_color::reset);
     int t = i < 0 ? lua_gettop(L) + i + 1 : i;
@@ -418,10 +429,10 @@ void lua_engine::print_table(lua_State* L, int i, log_priority prio) {
         log_plain_noln(log_color::white << "{" << log_color::reset);
         print_type_simple(L, -2, prio, true);
         log_plain_noln(", ");
-        if (lua_istable(L, -1)) {
-            print_table(L, -1, prio);
+        if (lua_istable(L, -1) && (max_level < 0 || level < max_level)) {
+            print_table(L, -1, prio, level + 1, max_level);
         } else {
-            print_type_simple(L, -1, prio, true, true);
+            print_type_simple(L, -1, prio, true, false);
         }
         log_plain_noln(log_color::white << "}" << log_color::reset);
         lua_pop(L, 1);
@@ -457,15 +468,23 @@ int lua_engine::print(lua_State* L) {
 }
 
 void lua_engine::dump_stack(lua_State* L) {
+    set_log_priority(log_priority::debug);
     log_debug("STACK START " << L);
     int s = lua_gettop(L);
+    bool nil_at_top = LUA_TNIL == lua_type(L, s);
     for (int i = s; i > 0; i--) {
         log_debug_noln("  " << log_color::white << i << ": " << log_color::reset << lua_typename(L, lua_type(L, i))
                             << ": ");
-        print_type(L, i, get_log_priority(), false, true);
-        log_debug("");
+        print_type(L, i, get_log_priority(), false, true, 1);
+        log_plain("");
+        if (i == s && nil_at_top) {
+            lua_remove(L, s);
+        }
     }
     log_debug("STACK END " << L);
+    if (nil_at_top) {
+        lua_pushnil(L);
+    }
 }
 
 int lua_engine::traceback(lua_State* L) {
@@ -563,7 +582,8 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
 }
 
 void lua_engine::handle_http_request(const std::string& func, const http2::server::request& req,
-                                     const http2::server::response& res, server& srv) {
+                                     const http2::server::response& res, server& srv,
+                                     std::shared_ptr<http2_content_buffer_type> content) {
     auto Lex = get_lua_state();
     auto* L = Lex.L;
     Lex.ctx->p_server = &srv;
@@ -581,7 +601,7 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     if (!lua_isfunction(L, -1)) {
         log_throw(L, path, {"handler function", func, "not defined"});
     }
-    push_http_request(L, req, path);
+    push_http_request(L, req, path, content);
     push_http_response(L);
     if (lua_pcall(L, 2, 1, Lex.traceback_idx)) {
         log_throw(nullptr, path, {"lua_pcall failed:", lua_tostring(L, -1)});
@@ -698,9 +718,14 @@ void lua_engine::push_http_request(lua_State* L, const session::request_type::po
         push_cookies(L, hdr->second);
         lua_setfield(L, -2, "cookies");
     }
+    if (req->method[0] == 'P') {  // we allow only GET and POST, so checking the first char is enough
+        lua_pushlstring(L, reinterpret_cast<const char*>(req->message.body().data()), req->message.body().size());
+        lua_setfield(L, -2, "content");
+    }
 }
 
-void lua_engine::push_http_request(lua_State* L, const http2::server::request& req, const std::string& path) {
+void lua_engine::push_http_request(lua_State* L, const http2::server::request& req, const std::string& path,
+                                   std::shared_ptr<http2_content_buffer_type> content) {
     lua_createtable(L, 0, 9);
     lua_pushinteger(L, std::time(nullptr));
     lua_setfield(L, -2, "timestamp");
@@ -727,6 +752,10 @@ void lua_engine::push_http_request(lua_State* L, const http2::server::request& r
     if (hdr != req.header().end()) {
         push_cookies(L, hdr->second.value.c_str());
         lua_setfield(L, -2, "cookies");
+    }
+    if (nullptr != content) {
+        lua_pushlstring(L, reinterpret_cast<const char*>(content->data()), content->size());
+        lua_setfield(L, -2, "content");
     }
 }
 

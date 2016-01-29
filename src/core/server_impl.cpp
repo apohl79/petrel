@@ -5,8 +5,9 @@
  * Author: Andreas Pohl
  */
 
-#include <boost/fiber/all.hpp>
 #include <unistd.h>
+#include <boost/fiber/all.hpp>
+#include <petrel/fiber/yield.hpp>
 
 #include "server.h"
 #include "server_impl.h"
@@ -15,7 +16,6 @@
 #include "options.h"
 #include "fiber_sched_algorithm.h"
 #include "make_unique.h"
-#include "boost/fiber/yield.hpp"
 
 namespace petrel {
 
@@ -36,6 +36,7 @@ server_impl::server_impl(server* srv) : m_server(srv), m_registry(m_resolver_cac
     m_stop_func = [] {};
     m_metric_requests = m_registry.register_metric<metrics::meter>("requests");
     m_metric_errors = m_registry.register_metric<metrics::meter>("errors");
+    m_metric_errors = m_registry.register_metric<metrics::meter>("not_implemented");
     m_metric_times = m_registry.register_metric<metrics::timer>("times");
 }
 
@@ -67,58 +68,9 @@ void server_impl::init() {
 
 void server_impl::start() {
     if (options::opts.count("server.http2")) {
-        // Install a handler that uses our own router
-        m_http2_server->handle("/", [this](const http2::server::request& req, const http2::server::response& res) {
-            auto& route = m_router.find_route_http2(req.uri().raw_path);
-            route(req, res);
-        });
-        // Check for SSL
-        if (options::opts.count("server.http2.tls")) {
-            run_http2_tls_server();
-        } else {
-            run_http2_server();
-        }
+        start_http2();
     } else {
-        // Create acceptors
-        using ba::ip::tcp;
-        auto listen = options::opts["server.listen"].as<std::string>();
-        auto port = options::opts["server.port"].as<std::string>();
-        ba::io_service iosvc;
-        tcp::resolver resolver(iosvc);
-        tcp::resolver::query query(listen, port);
-        bs::error_code ec;
-        bool success = false;
-        // Create an acceptor for any address and protocol type (IPv6/IPv4)
-        for (auto it = resolver.resolve(query); it != tcp::resolver::iterator(); ++it) {
-            tcp::endpoint ep = *it;
-            bs::error_code ec_local;
-            get_worker().add_endpoint(ep, ec_local);
-            if (ec_local) {
-                ec = ec_local;
-            } else {
-                success = true;
-            }
-        }
-        if (!success) {
-            throw std::runtime_error(ec.message());
-        }
-        // Run the io_service objects
-        for (auto& w : m_workers) {
-            w->start(*m_server);
-        }
-        log_notice("http server listening on " << listen << ":" << port);
-        m_stop_func = [this] {
-            // Stop the workers
-            for (auto& w : m_workers) {
-                w->stop();
-            }
-        };
-        m_join_func = [this] {
-            // Join the workers
-            for (auto& w : m_workers) {
-                w->join();
-            }
-        };
+        start_http();
     }
 }
 
@@ -135,87 +87,186 @@ void server_impl::stop() {
     m_registry.stop();
 }
 
+void server_impl::start_http2() {
+    // install a handler that uses our own router
+    m_http2_server->handle(
+        "/", [this](const http2::server::request& req, const http2::server::response& res) {
+            if (req.method() == "GET") {
+                auto& route = m_router.find_route_http2(req.uri().raw_path);
+                route(req, res, nullptr);
+            } else if (req.method() == "POST") {
+                log_debug("receiving content body");
+                auto buf = std::make_shared<http2_content_buffer_type>();
+                req.on_data([this, buf, &req, &res](const uint8_t* data, std::size_t len) {
+                    if (len == 0) {
+                        log_debug("received all content data");
+                        // received all content, route the request now
+                        auto& route = m_router.find_route_http2(req.uri().raw_path);
+                        route(req, res, buf);
+                    } else {
+                        log_debug("received content chunk of " << len << " bytes");
+                        // resize the buffer if needed
+                        if (buf->capacity() - buf->size() < len) {
+                            buf->reserve(buf->capacity() + len + 1024);
+                        }
+                        std::copy(data, data + len, std::back_inserter(*buf));
+                    }
+                });
+            } else {
+                m_metric_not_impl->increment();
+                auto hm = http2::header_map();
+                hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
+                res.write_head(501, std::move(hm));
+                res.end();
+            }
+        });
+    // Check for SSL
+    if (options::opts.count("server.http2.tls")) {
+        run_http2_tls_server();
+    } else {
+        run_http2_server();
+    }
+}
+
+void server_impl::start_http() {
+    // Create acceptors
+    using ba::ip::tcp;
+    auto listen = options::opts["server.listen"].as<std::string>();
+    auto port = options::opts["server.port"].as<std::string>();
+    ba::io_service iosvc;
+    tcp::resolver resolver(iosvc);
+    tcp::resolver::query query(listen, port);
+    bs::error_code ec;
+    bool success = false;
+    // Create an acceptor for any address and protocol type (IPv6/IPv4)
+    for (auto it = resolver.resolve(query); it != tcp::resolver::iterator(); ++it) {
+        tcp::endpoint ep = *it;
+        bs::error_code ec_local;
+        get_worker().add_endpoint(ep, ec_local);
+        if (ec_local) {
+            ec = ec_local;
+        } else {
+            success = true;
+        }
+    }
+    if (!success) {
+        throw std::runtime_error(ec.message());
+    }
+    // Run the io_service objects
+    for (auto& w : m_workers) {
+        w->start(*m_server);
+    }
+    log_notice("http server listening on " << listen << ":" << port);
+    m_stop_func = [this] {
+        // Stop the workers
+        for (auto& w : m_workers) {
+            w->stop();
+        }
+    };
+    m_join_func = [this] {
+        // Join the workers
+        for (auto& w : m_workers) {
+            w->join();
+        }
+    };
+}
+
+void server_impl::set_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+                                  metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
+    m_router
+        .set_route(
+            path, [this, &path, func, metric_req, metric_times, metric_err](
+                      const http2::server::request& req, const http2::server::response& res,
+                      std::shared_ptr<http2_content_buffer_type> content) {
+                log_debug("incomong request: method=" << req.method() << " path='" << req.uri().raw_path << "' query='"
+                                                      << req.uri().raw_query << "' -> func=" << func);
+                // reset the idle counter to stay responsive when we get traffic
+                fiber_sched_algorithm::reset_idle_counter();
+                // total requests
+                m_metric_requests->increment();
+                // path requests
+                metric_req->increment();
+                // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber
+                // finishes,
+                // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
+                std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
+                auto times = std::make_shared<metrics::timer::duration>(l);
+                try {
+                    // create a fiber and run the request handler
+                    bf::fiber([this, func, &req, content, &res, times, metric_err] {
+                        try {
+                            m_lua_engine.handle_http_request(func, req, res, *m_server, content);
+                        } catch (std::runtime_error& e) {
+                            m_metric_errors->increment();
+                            metric_err->increment();
+                            auto hm = http2::header_map();
+                            hm.emplace(std::make_pair(std::string("server"),
+                                                      http2::header_value{std::string("petrel"), false}));
+                            res.write_head(500, std::move(hm));
+                            res.end();
+                        }
+                    }).detach();
+                } catch (std::runtime_error& e) {
+                    m_metric_errors->increment();
+                    metric_err->increment();
+                    auto hm = http2::header_map();
+                    hm.emplace(
+                        std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
+                    res.write_head(500, std::move(hm));
+                    res.end();
+                }
+            });
+}
+
+void server_impl::set_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+                                 metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
+    m_router.set_route(
+        path, [this, &path, func, metric_req, metric_times, metric_err](session::request_type::pointer req) {
+            log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
+            // reset the idle counter to stay responsive when we get traffic
+            fiber_sched_algorithm::reset_idle_counter();
+            // we support only GET/POST
+            if (req->method == "GET" || req->method == "POST") {
+                // total requests
+                m_metric_requests->increment();
+                // path requests
+                metric_req->increment();
+                // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber
+                // finishes,
+                // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
+                std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
+                auto times = std::make_shared<metrics::timer::duration>(l);
+                try {
+                    // create a fiber and run the request handler
+                    bf::fiber([this, func, req, times, metric_err]() mutable {
+                        try {
+                            m_lua_engine.handle_http_request(func, req);
+                        } catch (std::runtime_error& e) {
+                            m_metric_errors->increment();
+                            metric_err->increment();
+                            req->send_error_response(500);
+                        }
+                    }).detach();
+                } catch (std::runtime_error& e) {
+                    m_metric_errors->increment();
+                    metric_err->increment();
+                    req->send_error_response(500);
+                }
+            } else {
+                m_metric_not_impl->increment();
+                req->send_error_response(501);
+            }
+        });
+}
+
 void server_impl::set_route(const std::string& path, const std::string& func) {
     auto metric_req = m_registry.register_metric<metrics::meter>("requests_" + func);
     auto metric_err = m_registry.register_metric<metrics::meter>("errors_" + func);
     auto metric_times = m_registry.register_metric<metrics::timer>("times_" + func);
-
     if (options::opts.count("server.http2")) {
-        m_router.set_route(path, [this, &path, func, metric_req, metric_times, metric_err](
-                                     const http2::server::request& req, const http2::server::response& res) {
-            log_debug("incomong request: method=" << req.method() << " path='" << req.uri().raw_path << "' query='"
-                                                  << req.uri().raw_query << "' -> func=" << func);
-            // reset the idle counter to stay responsive when we get traffic
-            fiber_sched_algorithm::reset_idle_counter();
-            // total requests
-            m_metric_requests->increment();
-            // path requests
-            metric_req->increment();
-            // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber finishes,
-            // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
-            std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
-            auto times = std::make_shared<metrics::timer::duration>(l);
-            try {
-                // create a fiber and run the request handler
-                bf::fiber([this, func, &req, &res, times, metric_err] {
-                    try {
-                        m_lua_engine.handle_http_request(func, req, res, *m_server);
-                    } catch (std::runtime_error& e) {
-                        m_metric_errors->increment();
-                        metric_err->increment();
-                        auto hm = http2::header_map();
-                        hm.emplace(
-                            std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
-                        res.write_head(500, std::move(hm));
-                        res.end();
-                    }
-                }).detach();
-            } catch (std::runtime_error& e) {
-                m_metric_errors->increment();
-                metric_err->increment();
-                auto hm = http2::header_map();
-                hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
-                res.write_head(500, std::move(hm));
-                res.end();
-            }
-        });
+        set_route_http2(path, func, metric_req, metric_err, metric_times);
     } else {
-        m_router.set_route(path, [this, &path, func, metric_req, metric_times,
-                                  metric_err](session::request_type::pointer req) {
-            log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
-            // reset the idle counter to stay responsive when we get traffic
-            fiber_sched_algorithm::reset_idle_counter();
-            // total requests
-            m_metric_requests->increment();
-            // path requests
-            metric_req->increment();
-            // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber finishes,
-            // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
-            std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
-            auto times = std::make_shared<metrics::timer::duration>(l);
-            try {
-                // create a fiber and run the request handler
-                bf::fiber([
-                    this,
-                    func,
-                    req,
-                    times,
-                    metric_err
-                ]() mutable {
-                    try {
-                        m_lua_engine.handle_http_request(func, req);
-                    } catch (std::runtime_error& e) {
-                        m_metric_errors->increment();
-                        metric_err->increment();
-                        req->send_error_response(500);
-                    }
-                }).detach();
-            } catch (std::runtime_error& e) {
-                m_metric_errors->increment();
-                metric_err->increment();
-                req->send_error_response(500);
-            }
-        });
+        set_route_http(path, func, metric_req, metric_err, metric_times);
     }
     m_num_routes++;
     log_info("  new route: " << path << " -> " << func);
@@ -250,17 +301,17 @@ void server_impl::run_http2_tls_server() {
     log_notice("  using private key: " << key);
     log_notice("  using certificate: " << crt);
 
-    ba::ssl::context tls(ba::ssl::context::sslv23);
-    tls.use_private_key_file(key, ba::ssl::context::pem);
-    tls.use_certificate_chain_file(crt);
+    m_tls = std::make_shared<ba::ssl::context>(ba::ssl::context::sslv23);
+    m_tls->use_private_key_file(key, ba::ssl::context::pem);
+    m_tls->use_certificate_chain_file(crt);
 
     bs::error_code ec;
-    http2::server::configure_tls_context_easy(ec, tls);
+    http2::server::configure_tls_context_easy(ec, *m_tls);
     if (bs::errc::success != ec.value()) {
         throw std::runtime_error(ec.message());
     }
 
-    if (m_http2_server->listen_and_serve(ec, tls, options::opts["server.listen"].as<std::string>(),
+    if (m_http2_server->listen_and_serve(ec, *m_tls, options::opts["server.listen"].as<std::string>(),
                                          options::opts["server.port"].as<std::string>(), true)) {
         throw std::runtime_error(ec.message());
     }

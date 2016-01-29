@@ -40,6 +40,8 @@ class server_impl: boost::noncopyable {
   public:
     set_log_tag_default_priority("server");
 
+    using http2_content_buffer_type = router::http2_content_buffer_type;
+
     /// Ctor.
     server_impl(server* srv);
 
@@ -102,13 +104,21 @@ class server_impl: boost::noncopyable {
 
     /// HTTP2 mode
     std::unique_ptr<http2::server::http2> m_http2_server;
+    std::shared_ptr<ba::ssl::context> m_tls;
 
     std::size_t m_num_routes = 0;
 
     metrics::meter::pointer m_metric_requests;
     metrics::meter::pointer m_metric_errors;
+    metrics::meter::pointer m_metric_not_impl;
     metrics::timer::pointer m_metric_times;
 
+    void start_http2();
+    void start_http();
+    void set_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+                         metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
+    void set_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+                        metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
     void run_http2_server();
     void run_http2_tls_server();
 };

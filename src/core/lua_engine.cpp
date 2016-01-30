@@ -576,7 +576,6 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     std::size_t content_len;
     const char* content = lua_tolstring(L, -1, &content_len);
     std::copy(content, content + content_len, std::back_inserter(res.message.body()));
-    res.message.headers().emplace(std::make_pair(std::string("content-length"), std::to_string(content_len)));
     req->send_response();
     // Clean up (remove return value and the traceback)
     lua_pop(L, 2);

@@ -573,8 +573,10 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     if (!lua_isstring(L, -1)) {
         log_throw(L, req->path, {"response.content is no string"});
     }
-    boost::string_ref content(lua_tostring(L, -1));
-    std::copy(content.begin(), content.end(), std::back_inserter(res.message.body()));
+    std::size_t content_len;
+    const char* content = lua_tolstring(L, -1, &content_len);
+    std::copy(content, content + content_len, std::back_inserter(res.message.body()));
+    res.message.headers().emplace(std::make_pair(std::string("content-length"), std::to_string(content_len)));
     req->send_response();
     // Clean up (remove return value and the traceback)
     lua_pop(L, 2);
@@ -645,9 +647,11 @@ void lua_engine::handle_http_request(const std::string& func, const http2::serve
     if (!lua_isstring(L, -1)) {
         log_throw(L, path, {"response.content is no string"});
     }
-    std::string data = lua_tostring(L, -1);
+    std::size_t res_content_len;
+    const char* res_content = lua_tolstring(L, -1, &res_content_len);
+    std::string data(res_content, res_content_len);
     hm.emplace(
-        std::make_pair(std::string("content-length"), http2::header_value{std::to_string(data.length()), false}));
+        std::make_pair(std::string("content-length"), http2::header_value{std::to_string(res_content_len), false}));
     res.write_head(status, std::move(hm));
     res.end(std::move(data));
     // Clean up (remove return value and the traceback)

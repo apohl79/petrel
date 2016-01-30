@@ -17,6 +17,7 @@
 namespace petrel {
 namespace lib {
 
+namespace ba = boost::asio;
 namespace bp = boost::posix_time;
 namespace http2 = nghttp2::asio_http2;
 
@@ -35,6 +36,9 @@ class http2_client : public library {
     std::unique_ptr<http2::client::session> m_session;
     std::string m_host;
     std::string m_port;
+    bool m_ssl = false;
+    bool m_ssl_verify = true;
+    std::unique_ptr<ba::ssl::context> m_tls;
     bp::time_duration m_read_timeout;
     bp::time_duration m_connect_timeout;
     bool m_connected;

@@ -28,7 +28,7 @@ Request Object
 Member              Description
 ==================  ==============
 path                Path of the request
-method              HTTP method (GET, POST, ...)
+method              HTTP method (GET / POST)
 proto               Either http or https
 host                HTTP host header
 timestamp           Request timestamp

@@ -6,6 +6,7 @@
  */
 
 #include <boost/utility/string_ref.hpp>
+#include <petrel/fiber/yield.hpp>
 
 #include "session.h"
 #include "server.h"
@@ -13,7 +14,6 @@
 #include "metrics/registry.h"
 #include "metrics/meter.h"
 #include "metrics/timer.h"
-#include "boost/fiber/yield.hpp"
 #include "boost/http/algorithm.hpp"
 
 namespace petrel {

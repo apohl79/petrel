@@ -35,6 +35,9 @@ pkg_check_modules(NGHTTP2_ASIO libnghttp2_asio)
 
 set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
 
+# FIXME: fiber causes unused-parameter warnings, so take it out for now
+set(COMP_FLAGS "${COMP_FLAGS} -Wno-unused-parameter")
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
   set(COMP_FLAGS "${COMP_FLAGS} -fdiagnostics-color=auto")
 endif()
@@ -55,6 +58,28 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPETREL_LIB_SUFFIX=\\\"${CMAKE_SHARED_M
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPETREL_LIBDIR_SUFFIX=\\\"${LIB_SUFFIX}\\\"")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPETREL_LIB_INSTALL_DIR=\\\"${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}\\\"")
 
+# install headers
+file(GLOB HEADERS
+  "core/server.h"
+  "core/log.h"
+  "core/resolver_cache.h"
+  "lib/library.h"
+  "metrics/*.h"
+  "fiber/*.hpp"
+  "fiber/detail/*.hpp")
+foreach(header ${HEADERS})
+  string(REPLACE "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/include/petrel" header_to ${header})
+  add_custom_command(
+    OUTPUT "${header_to}"
+    COMMAND cmake -E copy "${header}" "${header_to}"
+    DEPENDS "${header}")
+  list(APPEND HEADERS_DEST "${header_to}")
+endforeach()
+add_custom_target(headers_target ALL DEPENDS ${HEADERS_DEST})
+install(DIRECTORY ${CMAKE_BINARY_DIR}/include/petrel DESTINATION include)
+install(FILES "petrel.h" DESTINATION include)
+
+include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include_directories("${CMAKE_CURRENT_SOURCE_DIR}/core")
@@ -91,9 +116,6 @@ target_link_libraries(${PROJECT_NAME} ${LIB_CORE_NAME})
 target_link_libraries(${PROJECT_NAME} ${LUA_LIBRARIES})
 install(TARGETS ${PROJECT_NAME} DESTINATION bin)
 
-# libraries
-#add_subdirectory(lib/name)
-
 option(SEGMENTED_STACKS "Enable segmented stacks support. Note: You have to build boost with segmented-stacks=on." off)
 
 if(SEGMENTED_STACKS)
@@ -106,11 +128,6 @@ if(SEGMENTED_STACKS)
     target_link_libraries(${PROJECT_NAME} gcc)
   endif()
 endif()
-
-# install header files
-file(GLOB HEADERS "core/server.h" "core/log.h" "lib/library.h" "metrics/*.h")
-install(FILES "petrel.h" DESTINATION include)
-install(FILES ${HEADERS} DESTINATION include/${PROJECT_NAME})
 
 # pkgconfig
 configure_file(${CMAKE_SOURCE_DIR}/pkgconfig/petrel.pc.in ${CMAKE_BINARY_DIR}/pkgconfig/petrel.pc @ONLY)

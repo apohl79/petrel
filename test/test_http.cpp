@@ -38,12 +38,17 @@ BOOST_AUTO_TEST_CASE(test_http) {
     se.add_lua_code_to_buffer(
         "function bootstrap() "
         "  petrel.set_route(\"/\", \"handler\") "
+        "  petrel.set_route(\"/post/\", \"handler_post\") "
         "end "
         "function handler(req, res) "
         "  res.content = \"test\" "
         "  res.headers[\"x-hdr-test\"] = \"hdr-val\" "
         "  return res "
-        "end");
+        "end "
+        "function handler_post(req, res) "
+        "  for i=1,10000 do res.content = res.content .. req.content end "
+        "  return res "
+        "end ");
 
     // start server
     s.impl()->init();
@@ -63,7 +68,12 @@ BOOST_AUTO_TEST_CASE(test_http) {
         "  h = http_client() "
         "  h:connect(\"localhost\", \"18585\") "
         "  return h:get(\"/\") "
-        "end");
+        "end "
+        "function test_post() "
+        "  h = http_client() "
+        "  h:connect(\"localhost\", \"18585\") "
+        "  return h:post(\"/post/\", \"post_data\") "
+        "end ");
     auto Lex = ce.create_lua_state();
     log_info("state created");
 
@@ -83,13 +93,41 @@ BOOST_AUTO_TEST_CASE(test_http) {
                 // check result
                 BOOST_CHECK(lua_isstring(Lex.L, -1));
                 BOOST_CHECK(lua_isinteger(Lex.L, -2));
-                std::string content(lua_tostring(Lex.L, -1));
+                std::size_t content_len;
+                const char* content = lua_tolstring(Lex.L, -1, &content_len);
+                BOOST_CHECK(content_len == 4);
                 int status = lua_tointeger(Lex.L, -2);
-                BOOST_CHECK_MESSAGE(content == "test", "'test' expected: content was '" << content << "'");
+                BOOST_CHECK_MESSAGE(!std::strncmp(content, "test", content_len), "'test' expected: content was '"
+                                                                                     << content << "'");
                 BOOST_CHECK(status == 200);
             }
+            log_info("get done");
+
+            lua_getglobal(Lex.L, "test_post");
+            BOOST_CHECK(lua_isfunction(Lex.L, -1));
+            // call function
+            if (lua_pcall(Lex.L, 0, 2, Lex.traceback_idx)) {
+                BOOST_CHECK_MESSAGE(false, "lua_pcall failed: " << lua_tostring(Lex.L, -1));
+            } else {
+                // check result
+                BOOST_CHECK(lua_isstring(Lex.L, -1));
+                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                std::string expected;
+                for (int i = 0; i < 10000; i++) {
+                    expected += "post_data";
+                }
+                std::size_t content_len;
+                const char* content = lua_tolstring(Lex.L, -1, &content_len);
+                BOOST_CHECK_MESSAGE(content_len == expected.size(),
+                                    "content_len(" << content_len << ") != expected.size(" << expected.size() << ")");
+                int status = lua_tointeger(Lex.L, -2);
+                BOOST_CHECK_MESSAGE(!std::strncmp(content, expected.c_str(), content_len),
+                                    "'" << expected << "' expected: content was '" << content << "'");
+                BOOST_CHECK(status == 200);
+            }
+            log_info("post done");
+
             iosvc.stop();
-            log_info("done");
         }).detach();
 
         use_scheduling_algorithm<fiber_sched_algorithm>(iosvc);

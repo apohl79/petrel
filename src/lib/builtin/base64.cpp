@@ -16,10 +16,10 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(base64);
+DECLARE_LIB_BEGIN(base64);
 ADD_LIB_FUNCTION(encode);
 ADD_LIB_FUNCTION(decode);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 using namespace boost::archive::iterators;
 using namespace boost::algorithm;

@@ -15,15 +15,14 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(http2_client);
+DECLARE_LIB_BEGIN(http2_client);
 ADD_LIB_METHOD(connect);
 ADD_LIB_METHOD(disconnect);
 ADD_LIB_METHOD(get);
 ADD_LIB_METHOD(read_timeout);
 ADD_LIB_METHOD(connect_timeout);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
-namespace ba = boost::asio;
 namespace bs = boost::system;
 namespace bf = boost::fibers;
 
@@ -34,12 +33,35 @@ int http2_client::connect(lua_State* L) {
     } else {
         m_port = "80";
     }
+    if (lua_isboolean(L, 3)) {
+        m_ssl = lua_toboolean(L, 3);
+    }
+    if (lua_isboolean(L, 4)) {
+        m_ssl_verify = lua_toboolean(L, 4);
+    }
+
+    if (m_ssl) {
+        m_tls = std::make_unique<ba::ssl::context>(ba::ssl::context::sslv23);
+        m_tls->set_default_verify_paths();
+        if (m_ssl_verify) {
+            m_tls->set_verify_mode(ba::ssl::verify_peer);
+        }
+        bs::error_code ec;
+        http2::client::configure_tls_context(ec, *m_tls);
+        if (ec) {
+            luaL_error(L, "configure_tls_context failed: %s", ec.message().c_str());
+        }
+    }
 
     bf::promise<bs::error_code> promise;
     bf::future<bs::error_code> future(promise.get_future());
 
     // TODO: use resolver_cache (extend the nghttp2 client interface, so we can pass in an endpoint iterator)
-    m_session = std::make_unique<http2::client::session>(io_service(), m_host, m_port);
+    if (m_ssl) {
+        m_session = std::make_unique<http2::client::session>(io_service(), *m_tls, m_host, m_port);
+    } else {
+        m_session = std::make_unique<http2::client::session>(io_service(), m_host, m_port);
+    }
     m_session->connect_timeout(m_connect_timeout);
     m_session->read_timeout(m_read_timeout);
     m_session->on_connect([&promise](ba::ip::tcp::resolver::iterator) { promise.set_value(bs::error_code()); });

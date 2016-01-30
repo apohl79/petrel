@@ -24,7 +24,7 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(petrel);
+DECLARE_LIB_BEGIN(petrel);
 ENABLE_LIB_LOAD();
 ADD_LIB_FUNCTION(set_route);
 ADD_LIB_FUNCTION(lib_search_path);
@@ -33,7 +33,7 @@ ADD_LIB_FUNCTION(load_lib);
 ADD_LIB_FUNCTION(sleep_nanos);
 ADD_LIB_FUNCTION(sleep_micros);
 ADD_LIB_FUNCTION(sleep_millis);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 /// List of paths to search for libraries loaded via load_lib
 using path_list = std::vector<std::string>;

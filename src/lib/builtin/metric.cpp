@@ -17,7 +17,7 @@
 namespace petrel {
 namespace lib {
 
-DECLARE_LIB(metric);
+DECLARE_LIB_BEGIN(metric);
 ADD_LIB_METHOD(register_counter);
 ADD_LIB_METHOD(register_meter);
 ADD_LIB_METHOD(register_timer);
@@ -32,7 +32,7 @@ ADD_LIB_METHOD(increment);
 ADD_LIB_METHOD(decrement);
 ADD_LIB_METHOD(total);
 ADD_LIB_METHOD(reset);
-REGISTER_LIB_BUILTIN();
+DECLARE_LIB_BUILTIN_END();
 
 int metric::register_counter(lua_State* L) {
     const char* name = luaL_checkstring(L, 1);
@@ -118,7 +118,7 @@ int metric::finish_duration(lua_State* L) {
     if (nullptr == m_duration) {
         luaL_error(L, "no duration, you have to call start_duration");
     }
-    m_duration->reset();
+    m_duration->finish();
     return 0;
 }
 

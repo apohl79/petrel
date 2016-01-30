@@ -25,14 +25,17 @@ namespace http2 = nghttp2::asio_http2;
 /// A router maps path strings to handler functions.
 class router {
   public:
+    using http2_content_buffer_type = std::vector<std::uint8_t>;
     using route_func_http_type = std::function<void(session::request_type::pointer)>;
     using route_func_http2_type =
-        std::function<void(const http2::server::request& req, const http2::server::response& res)>;
+        std::function<void(const http2::server::request& req, const http2::server::response& res,
+                           std::shared_ptr<http2_content_buffer_type> content)>;
 
     router() {
         // setup 404 defaults
         m_http_default = [](session::request_type::pointer req) { req->send_error_response(404); };
-        m_http2_default = [](const http2::server::request&, const http2::server::response& res) {
+        m_http2_default = [](const http2::server::request&, const http2::server::response& res,
+                             std::shared_ptr<http2_content_buffer_type> content) {
             res.write_head(404);
             res.end();
         };

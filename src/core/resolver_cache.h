@@ -16,9 +16,9 @@
 #include <mutex>
 
 #include <boost/asio.hpp>
-#include "boost/fiber/yield.hpp"
 
-#include "log.h"
+#include <petrel/fiber/yield.hpp>
+#include <petrel/core/log.h>
 
 namespace petrel {
 

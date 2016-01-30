@@ -1,5 +1,5 @@
-A Request Handler
-=================
+Request Handler Interface
+=========================
 
 To make your service work you have to write and install request handlers. A request handler is a LUA function with the following signature:
 
@@ -34,6 +34,7 @@ host                HTTP host header
 timestamp           Request timestamp
 headers             Table of HTTP headers
 cookies             Table of cookies
+content             Content body of a POST request
 remote_addr_str     Client IP address
 remote_addr_ip_ver  Client IP version (4 or 6)
 ==================  ==============

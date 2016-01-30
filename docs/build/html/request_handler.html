@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>A Request Handler</title>
+  <title>Request Handler Interface</title>
   
 
   
@@ -85,7 +85,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="">A Request Handler</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Request Handler Interface</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#request-object">Request Object</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#response-object">Response Object</a></li>
 </ul>
@@ -126,7 +126,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-    <li>A Request Handler</li>
+    <li>Request Handler Interface</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -138,8 +138,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="a-request-handler">
-<h1>A Request Handler<a class="headerlink" href="#a-request-handler" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="request-handler-interface">
+<h1>Request Handler Interface<a class="headerlink" href="#request-handler-interface" title="Permalink to this headline">¶</a></h1>
 <p>To make your service work you have to write and install request handlers. A request handler is a LUA function with the following signature:</p>
 <dl class="function">
 <dt id="handler">
@@ -177,8 +177,8 @@ end
 <h2>Request Object<a class="headerlink" href="#request-object" title="Permalink to this headline">¶</a></h2>
 <table border="1" class="docutils">
 <colgroup>
-<col width="39%" />
-<col width="61%" />
+<col width="38%" />
+<col width="63%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Member</th>
@@ -207,10 +207,13 @@ end
 <tr class="row-even"><td>cookies</td>
 <td>Table of cookies</td>
 </tr>
-<tr class="row-odd"><td>remote_addr_str</td>
+<tr class="row-odd"><td>content</td>
+<td>Content body of a POST request</td>
+</tr>
+<tr class="row-even"><td>remote_addr_str</td>
 <td>Client IP address</td>
 </tr>
-<tr class="row-even"><td>remote_addr_ip_ver</td>
+<tr class="row-odd"><td>remote_addr_ip_ver</td>
 <td>Client IP version (4 or 6)</td>
 </tr>
 </tbody>

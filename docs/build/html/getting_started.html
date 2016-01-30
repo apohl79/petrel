@@ -92,7 +92,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
-<li class="toctree-l1"><a class="reference internal" href="request_handler.html">A Request Handler</a></li>
+<li class="toctree-l1"><a class="reference internal" href="request_handler.html">Request Handler Interface</a></li>
 <li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="native_libs.html">Native Libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lib_howto.html">Native Library Tutorial</a></li>
@@ -147,7 +147,7 @@
 <p>It is assumed that you have installed petrel already. If not, please follow the <a class="reference internal" href="installation_guide.html"><em>Installation Guide</em></a>.</p>
 <p>A service works as follwos:</p>
 <ul class="simple">
-<li>You provide request handler functions in LUA (see <a class="reference internal" href="request_handler.html"><em>A Request Handler</em></a>).</li>
+<li>You provide request handler functions in LUA (see <a class="reference internal" href="request_handler.html"><em>Request Handler Interface</em></a>).</li>
 <li>You setup routes for your handlers via <a class="reference internal" href="lib_petrel.html#petrel.set_route" title="petrel.set_route"><code class="xref py py-func docutils literal"><span class="pre">petrel.set_route()</span></code></a> (see <a class="reference internal" href="lib_petrel.html"><em>petrel Library</em></a>).</li>
 <li>Petrel routes requests to your handlers and the responses back to the clients.</li>
 <li>Within the handlers you can use builtin or external native libraries to implement your service.</li>

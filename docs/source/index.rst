@@ -21,5 +21,6 @@ Contents
    native_libs
    lib_howto
    license
+   Website <https://apohl79.github.io/petrel>
    Source Code <https://github.com/apohl79/petrel>
 

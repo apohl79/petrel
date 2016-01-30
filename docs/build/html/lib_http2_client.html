@@ -152,7 +152,7 @@
 <div class="section" id="synopsis">
 <h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
 <p>Usage in LUA:</p>
-<div class="highlight-python"><div class="highlight"><pre>client = http_client()
+<div class="highlight-python"><div class="highlight"><pre>client = http2_client()
 client:connect(&quot;remote.server.com&quot;, &quot;80&quot;)
 status, content = client:get(&quot;/&quot;)
 print(LOG_DEBUG, status, content)
@@ -174,7 +174,7 @@ print(LOG_DEBUG, status, content)
 </table>
 <dl class="method">
 <dt id="connect">
-<code class="descname">connect</code><span class="sig-paren">(</span><em>host</em><span class="optional">[</span>, <em>port = &quot;80&quot;</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#connect" title="Permalink to this definition">¶</a></dt>
+<code class="descname">connect</code><span class="sig-paren">(</span><em>host</em><span class="optional">[</span>, <em>port = &quot;80&quot;</em><span class="optional">]</span><span class="optional">[</span>, <em>ssl = false</em><span class="optional">]</span><span class="optional">[</span>, <em>ssl_verify = true</em><span class="optional">]</span><span class="sig-paren">)</span><a class="headerlink" href="#connect" title="Permalink to this definition">¶</a></dt>
 <dd><p>Connect to an endpoint.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -183,6 +183,8 @@ print(LOG_DEBUG, status, content)
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>host</strong> (<em>string</em>) &#8211; The hostname or ip address to connect to.</li>
 <li><strong>port</strong> (<em>string</em>) &#8211; The port to connect to.</li>
+<li><strong>ssl</strong> (<em>boolean</em>) &#8211; Enable SSL for the connection.</li>
+<li><strong>ssl_verify</strong> (<em>boolean</em>) &#8211; If SSL is enabled, this value defines if the server certificate gets verified.</li>
 </ul>
 </td>
 </tr>
@@ -221,7 +223,7 @@ print(LOG_DEBUG, status, content)
 <dl class="method">
 <dt id="get">
 <code class="descname">get</code><span class="sig-paren">(</span><em>path</em><span class="sig-paren">)</span><a class="headerlink" href="#get" title="Permalink to this definition">¶</a></dt>
-<dd><p>Send a GET request to a connected remote endpoint and receive the content.</p>
+<dd><p>Send a GET request to a connected remote endpoint and receive the response content.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />

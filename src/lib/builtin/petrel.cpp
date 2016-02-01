@@ -26,7 +26,7 @@ namespace lib {
 
 DECLARE_LIB_BEGIN(petrel);
 ENABLE_LIB_LOAD();
-ADD_LIB_FUNCTION(set_route);
+ADD_LIB_FUNCTION(add_route);
 ADD_LIB_FUNCTION(lib_search_path);
 ADD_LIB_FUNCTION(add_lib_search_path);
 ADD_LIB_FUNCTION(load_lib);
@@ -59,10 +59,10 @@ void petrel::load() {
     }
 }
 
-int petrel::set_route(lua_State* L) {
+int petrel::add_route(lua_State* L) {
     std::string path = luaL_checkstring(L, 1);
     std::string func = luaL_checkstring(L, 2);
-    context(L).server().impl()->set_route(path, func);
+    context(L).server().impl()->add_route(path, func);
     return 0; // no results
 }
 

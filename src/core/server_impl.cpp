@@ -171,10 +171,10 @@ void server_impl::start_http() {
     };
 }
 
-void server_impl::set_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+void server_impl::add_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
                                   metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
     m_router
-        .set_route(
+        .add_route(
             path, [this, &path, func, metric_req, metric_times, metric_err](
                       const http2::server::request& req, const http2::server::response& res,
                       std::shared_ptr<http2_content_buffer_type> content) {
@@ -218,9 +218,9 @@ void server_impl::set_route_http2(const std::string& path, const std::string& fu
             });
 }
 
-void server_impl::set_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+void server_impl::add_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
                                  metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
-    m_router.set_route(
+    m_router.add_route(
         path, [this, &path, func, metric_req, metric_times, metric_err](session::request_type::pointer req) {
             log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
             // reset the idle counter to stay responsive when we get traffic
@@ -259,14 +259,14 @@ void server_impl::set_route_http(const std::string& path, const std::string& fun
         });
 }
 
-void server_impl::set_route(const std::string& path, const std::string& func) {
+void server_impl::add_route(const std::string& path, const std::string& func) {
     auto metric_req = m_registry.register_metric<metrics::meter>("requests_" + func);
     auto metric_err = m_registry.register_metric<metrics::meter>("errors_" + func);
     auto metric_times = m_registry.register_metric<metrics::timer>("times_" + func);
     if (options::opts.count("server.http2")) {
-        set_route_http2(path, func, metric_req, metric_err, metric_times);
+        add_route_http2(path, func, metric_req, metric_err, metric_times);
     } else {
-        set_route_http(path, func, metric_req, metric_err, metric_times);
+        add_route_http(path, func, metric_req, metric_err, metric_times);
     }
     m_num_routes++;
     log_info("  new route: " << path << " -> " << func);

@@ -21,7 +21,7 @@ class petrel : public library {
 
     /// Add a route. This function takes two parameters: (1) a path and (2) a lua function name. The function will be
     /// called for each request with the given path.
-    static int set_route(lua_State* L);
+    static int add_route(lua_State* L);
 
     /// Return the library search path list
     static int lib_search_path(lua_State* L);

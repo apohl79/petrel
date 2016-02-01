@@ -58,7 +58,7 @@ class server_impl: boost::noncopyable {
     void init();
 
     /// Install a lua function as handler for a path.
-    void set_route(const std::string& path, const std::string& func);
+    void add_route(const std::string& path, const std::string& func);
 
     /// Return an io_service via round robin
     inline worker& get_worker() {
@@ -115,9 +115,9 @@ class server_impl: boost::noncopyable {
 
     void start_http2();
     void start_http();
-    void set_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+    void add_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
                          metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
-    void set_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
+    void add_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
                         metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
     void run_http2_server();
     void run_http2_tls_server();

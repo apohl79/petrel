@@ -43,8 +43,8 @@ class router {
 
     /// Add a route function for a path. All incoming requests starting with the given path string will be handled by
     /// the given function.
-    void set_route(const std::string& path, route_func_http_type func) { m_set_http.insert(path, std::move(func)); }
-    void set_route(const std::string& path, route_func_http2_type func) { m_set_http2.insert(path, std::move(func)); }
+    void add_route(const std::string& path, route_func_http_type func) { m_set_http.insert(path, std::move(func)); }
+    void add_route(const std::string& path, route_func_http2_type func) { m_set_http2.insert(path, std::move(func)); }
 
     /// Find a route function for a path for http. A default function will be returned if no function can be found.
     route_func_http_type& find_route_http(const std::string& path) {

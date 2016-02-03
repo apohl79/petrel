@@ -8,7 +8,7 @@ It is assumed that you have installed petrel already. If not, please follow the 
 A service works as follwos:
 
 * You provide request handler functions in LUA (see :doc:`request_handler`).
-* You setup routes for your handlers via :func:`petrel.set_route` (see :doc:`lib_petrel`).
+* You setup routes for your handlers via :func:`petrel.add_route` (see :doc:`lib_petrel`).
 * Petrel routes requests to your handlers and the responses back to the clients.
 * Within the handlers you can use builtin or external native libraries to implement your service. 
 
@@ -28,8 +28,8 @@ When petrel gets started, it will load the lua code that you put into your proje
 The first thing after loading your code is to configure the server. You have to provide a function called ``bootstrap()``. This function will be called to setup the router which purpose it is to pass requests to their handler function. We create a dedicated file for it and name it ``bootstrap.lua``. We put the following content into it::
 
   function bootstrap()
-      petrel.set_route("/json/", "json_handler")
-      petrel.set_route("/text/", "text_handler")
+      petrel.add_route("/json/", "json_handler")
+      petrel.add_route("/text/", "text_handler")
   end
 
 We setup two request handlers for our service. The ``json_handler`` will return a JSON result and the ``text_handler`` a result in plain text form.

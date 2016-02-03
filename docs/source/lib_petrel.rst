@@ -11,7 +11,8 @@ Usage in LUA::
   function bootstrap()
       petrel.add_lib_search_path("/opt/my_native_lib/path")
       petrel.load_lib("my_native_lib")
-      petrel.set_route("/mypath", "mypath_handler")
+      petrel.add_route("/mypath", "mypath_handler")
+      petrel.add_directory_route("/myfiles", "/absolute/root/path")
   end
 
   function mypath_handler(req, res)
@@ -21,17 +22,17 @@ Usage in LUA::
       return res
   end
 
-.. function:: petrel.set_route(path, handler)
+.. function:: petrel.add_route(path, handler)
 
    Setup a handler route.
    
    :param string path: The path
-   :return: (*string*) - The hash string
+   :param string handler: The function name of the LUA handler
 
    If multiple path's are overlapping, the most specific path handler gets executed. For example if you setup the following two routes::
 
-     petrel.set_route("/mypath", "mypath_handler")
-     petrel.set_route("/mypath/subpath", "mysubpath_handler")
+     petrel.add_route("/mypath", "mypath_handler")
+     petrel.add_route("/mypath/subpath", "mysubpath_handler")
 
    **mysubpath_handler** gets executed for requests like:
 
@@ -42,6 +43,13 @@ Usage in LUA::
 
      * http://myserver/mypath/abc
      * http://myserver/mypath/
+
+.. function:: petrel.add_directory_route(path, root)
+
+   Setup a handler route.
+   
+   :param string path: The http query path
+   :param string root: The local root directory
 
 .. function:: petrel.add_lib_search_path(path)
 

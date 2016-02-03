@@ -148,7 +148,7 @@
 <p>A service works as follwos:</p>
 <ul class="simple">
 <li>You provide request handler functions in LUA (see <a class="reference internal" href="request_handler.html"><em>Request Handler Interface</em></a>).</li>
-<li>You setup routes for your handlers via <a class="reference internal" href="lib_petrel.html#petrel.set_route" title="petrel.set_route"><code class="xref py py-func docutils literal"><span class="pre">petrel.set_route()</span></code></a> (see <a class="reference internal" href="lib_petrel.html"><em>petrel Library</em></a>).</li>
+<li>You setup routes for your handlers via <a class="reference internal" href="lib_petrel.html#petrel.add_route" title="petrel.add_route"><code class="xref py py-func docutils literal"><span class="pre">petrel.add_route()</span></code></a> (see <a class="reference internal" href="lib_petrel.html"><em>petrel Library</em></a>).</li>
 <li>Petrel routes requests to your handlers and the responses back to the clients.</li>
 <li>Within the handlers you can use builtin or external native libraries to implement your service.</li>
 </ul>
@@ -163,8 +163,8 @@ $ cd myservice
 <p>When petrel gets started, it will load the lua code that you put into your project directory. You have to tell petrel where your project root is located by the configuration option lua.root (see <a class="reference internal" href="config_options.html"><em>Configuration Options</em></a>). For a file to be loaded it has to have the <code class="docutils literal"><span class="pre">.lua</span></code> extension. You can use as many files and subdirectories to structure your code as you wish.</p>
 <p>The first thing after loading your code is to configure the server. You have to provide a function called <code class="docutils literal"><span class="pre">bootstrap()</span></code>. This function will be called to setup the router which purpose it is to pass requests to their handler function. We create a dedicated file for it and name it <code class="docutils literal"><span class="pre">bootstrap.lua</span></code>. We put the following content into it:</p>
 <div class="highlight-python"><div class="highlight"><pre>function bootstrap()
-    petrel.set_route(&quot;/json/&quot;, &quot;json_handler&quot;)
-    petrel.set_route(&quot;/text/&quot;, &quot;text_handler&quot;)
+    petrel.add_route(&quot;/json/&quot;, &quot;json_handler&quot;)
+    petrel.add_route(&quot;/text/&quot;, &quot;text_handler&quot;)
 end
 </pre></div>
 </div>

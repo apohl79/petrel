@@ -157,7 +157,8 @@
 <div class="highlight-python"><div class="highlight"><pre>function bootstrap()
     petrel.add_lib_search_path(&quot;/opt/my_native_lib/path&quot;)
     petrel.load_lib(&quot;my_native_lib&quot;)
-    petrel.set_route(&quot;/mypath&quot;, &quot;mypath_handler&quot;)
+    petrel.add_route(&quot;/mypath&quot;, &quot;mypath_handler&quot;)
+    petrel.add_directory_route(&quot;/myfiles&quot;, &quot;/absolute/root/path&quot;)
 end
 
 function mypath_handler(req, res)
@@ -169,22 +170,24 @@ end
 </pre></div>
 </div>
 <dl class="function">
-<dt id="petrel.set_route">
-<code class="descclassname">petrel.</code><code class="descname">set_route</code><span class="sig-paren">(</span><em>path</em>, <em>handler</em><span class="sig-paren">)</span><a class="headerlink" href="#petrel.set_route" title="Permalink to this definition">¶</a></dt>
+<dt id="petrel.add_route">
+<code class="descclassname">petrel.</code><code class="descname">add_route</code><span class="sig-paren">(</span><em>path</em>, <em>handler</em><span class="sig-paren">)</span><a class="headerlink" href="#petrel.add_route" title="Permalink to this definition">¶</a></dt>
 <dd><p>Setup a handler route.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>path</strong> (<em>string</em>) &#8211; The path</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(<em>string</em>) - The hash string</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) &#8211; The path</li>
+<li><strong>handler</strong> (<em>string</em>) &#8211; The function name of the LUA handler</li>
+</ul>
+</td>
 </tr>
 </tbody>
 </table>
 <p>If multiple path&#8217;s are overlapping, the most specific path handler gets executed. For example if you setup the following two routes:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">petrel</span><span class="o">.</span><span class="n">set_route</span><span class="p">(</span><span class="s2">&quot;/mypath&quot;</span><span class="p">,</span> <span class="s2">&quot;mypath_handler&quot;</span><span class="p">)</span>
-<span class="n">petrel</span><span class="o">.</span><span class="n">set_route</span><span class="p">(</span><span class="s2">&quot;/mypath/subpath&quot;</span><span class="p">,</span> <span class="s2">&quot;mysubpath_handler&quot;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">petrel</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="s2">&quot;/mypath&quot;</span><span class="p">,</span> <span class="s2">&quot;mypath_handler&quot;</span><span class="p">)</span>
+<span class="n">petrel</span><span class="o">.</span><span class="n">add_route</span><span class="p">(</span><span class="s2">&quot;/mypath/subpath&quot;</span><span class="p">,</span> <span class="s2">&quot;mysubpath_handler&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 <p><strong>mysubpath_handler</strong> gets executed for requests like:</p>
@@ -201,6 +204,24 @@ end
 <li><a class="reference external" href="http://myserver/mypath/">http://myserver/mypath/</a></li>
 </ul>
 </div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="petrel.add_directory_route">
+<code class="descclassname">petrel.</code><code class="descname">add_directory_route</code><span class="sig-paren">(</span><em>path</em>, <em>root</em><span class="sig-paren">)</span><a class="headerlink" href="#petrel.add_directory_route" title="Permalink to this definition">¶</a></dt>
+<dd><p>Setup a handler route.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>path</strong> (<em>string</em>) &#8211; The http query path</li>
+<li><strong>root</strong> (<em>string</em>) &#8211; The local root directory</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">

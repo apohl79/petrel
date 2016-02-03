@@ -12,7 +12,6 @@
 #include <queue>
 
 #include <boost/asio.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <boost/fiber/all.hpp>
 
 #include "log.h"
@@ -65,7 +64,6 @@ class session : public std::enable_shared_from_this<session> {
         /// Send an error response with the given error code
         void send_error_response(std::uint_fast16_t status) {
             response.status = status;
-            response.message.headers().emplace(std::make_pair(std::string("server"), std::string("petrel")));
             send_response();
         }
 

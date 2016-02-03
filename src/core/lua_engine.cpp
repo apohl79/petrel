@@ -15,7 +15,6 @@
 #include <iostream>
 #include <chrono>
 #include <algorithm>
-#include <vector>
 #include <ctime>
 
 #include <boost/filesystem.hpp>
@@ -518,7 +517,7 @@ void lua_engine::bootstrap(server& srv) {
     destroy_lua_state(Lex);
 }
 
-void lua_engine::handle_http_request(const std::string& func, session::request_type::pointer req) {
+void lua_engine::handle_request(const std::string& func, request::pointer req) {
     auto Lex = get_lua_state();
     auto* L = Lex.L;
     Lex.ctx->p_server = &req->get_server();
@@ -526,133 +525,47 @@ void lua_engine::handle_http_request(const std::string& func, session::request_t
     // Call func
     lua_getglobal(L, func.c_str());
     if (!lua_isfunction(L, -1)) {
-        log_throw(L, req->path, {"handler function", func, "not defined"});
+        log_throw(L, req->path(), {"handler function", func, "not defined"});
     }
-    push_http_request(L, req);
-    push_http_response(L);
+    push_request(L, req);
+    push_response(L);
     if (lua_pcall(L, 2, 1, Lex.traceback_idx)) {
-        log_throw(nullptr, req->path, {"lua_pcall failed:", lua_tostring(L, -1)});
-    }
-    auto& res = req->response;
-    // Get the response
-    if (!lua_istable(L, -1)) {
-        log_throw(L, req->path, {"repsonse is no table"});
-    }
-    lua_getfield(L, -1, "status");
-    if (!lua_isnumber(L, -1)) {
-        log_throw(L, req->path, {"response.status is no number"});
-    }
-    res.status = lua_tointeger(L, -1);
-    lua_pop(L, 1);
-    // Iterate through response headers
-    lua_getfield(L, -1, "headers");
-    if (!lua_istable(L, -1)) {
-        log_throw(L, req->path, {"repsonse.headers is no table"});
-    }
-    int hdr_i = lua_gettop(L);
-    bool has_server = false;
-    lua_pushnil(L);
-    while (lua_next(L, hdr_i) != 0) {
-        if (lua_isstring(L, -1) && lua_isstring(L, -2)) {
-            boost::string_ref name(lua_tostring(L, -2));
-            if (!has_server && name == "server") {
-                has_server = true;
-            }
-            res.message.headers().emplace(
-                std::make_pair(std::string(name), std::string(lua_tostring(L, -1))));
-        }
-        lua_pop(L, 1);
-    }
-    lua_pop(L, 1);
-    // Set server header if not present
-    if (!has_server) {
-        res.message.headers().emplace(std::make_pair(std::string("server"), std::string("petrel")));
-    }
-    // Get the content
-    lua_getfield(L, -1, "content");
-    if (!lua_isstring(L, -1)) {
-        log_throw(L, req->path, {"response.content is no string"});
-    }
-    std::size_t content_len;
-    const char* content = lua_tolstring(L, -1, &content_len);
-    std::copy(content, content + content_len, std::back_inserter(res.message.body()));
-    req->send_response();
-    // Clean up (remove return value and the traceback)
-    lua_pop(L, 2);
-    free_lua_state(Lex);
-}
-
-void lua_engine::handle_http_request(const std::string& func, const http2::server::request& req,
-                                     const http2::server::response& res, server& srv,
-                                     std::shared_ptr<http2_content_buffer_type> content) {
-    auto Lex = get_lua_state();
-    auto* L = Lex.L;
-    Lex.ctx->p_server = &srv;
-    Lex.ctx->p_io_service = &res.io_service();
-    std::string path;
-    if (!req.uri().raw_query.empty()) {
-        std::ostringstream s;
-        s << req.uri().raw_path << "?" << req.uri().raw_query;
-        path = s.str();
-    } else {
-        path = req.uri().raw_path;
-    }
-    // Call func
-    lua_getglobal(L, func.c_str());
-    if (!lua_isfunction(L, -1)) {
-        log_throw(L, path, {"handler function", func, "not defined"});
-    }
-    push_http_request(L, req, path, content);
-    push_http_response(L);
-    if (lua_pcall(L, 2, 1, Lex.traceback_idx)) {
-        log_throw(nullptr, path, {"lua_pcall failed:", lua_tostring(L, -1)});
+        log_throw(nullptr, req->path(), {"lua_pcall failed:", lua_tostring(L, -1)});
     }
     // Get the response
     if (!lua_istable(L, -1)) {
-        log_throw(L, path, {"repsonse is no table"});
+        log_throw(L, req->path(), {"repsonse is no table"});
     }
     lua_getfield(L, -1, "status");
     if (!lua_isnumber(L, -1)) {
-        log_throw(L, path, {"response.status is no number"});
+        log_throw(L, req->path(), {"response.status is no number"});
     }
     int status = lua_tointeger(L, -1);
     lua_pop(L, 1);
     // Iterate through response headers
     lua_getfield(L, -1, "headers");
     if (!lua_istable(L, -1)) {
-        log_throw(L, path, {"repsonse.headers is no table"});
+        log_throw(L, req->path(), {"repsonse.headers is no table"});
     }
-    auto hm = http2::header_map();
-    bool has_server = false;
     int hdr_i = lua_gettop(L);
     lua_pushnil(L);
     while (lua_next(L, hdr_i) != 0) {
         if (lua_isstring(L, -1) && lua_isstring(L, -2)) {
-            boost::string_ref name(lua_tostring(L, -2));
-            if (!has_server && name == "server") {
-                has_server = true;
-            }
-            hm.emplace(std::make_pair(std::string(name), http2::header_value{std::string(lua_tostring(L, -1)), false}));
+            const char* name = lua_tostring(L, -2);
+            const char* val = lua_tostring(L, -1);
+            req->add_header(name, val);
         }
         lua_pop(L, 1);
     }
     lua_pop(L, 1);
-    // Set server header if not present
-    if (!has_server) {
-        hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
-    }
     // Get the content
     lua_getfield(L, -1, "content");
     if (!lua_isstring(L, -1)) {
-        log_throw(L, path, {"response.content is no string"});
+        log_throw(L, req->path(), {"response.content is no string"});
     }
-    std::size_t res_content_len;
-    const char* res_content = lua_tolstring(L, -1, &res_content_len);
-    std::string data(res_content, res_content_len);
-    hm.emplace(
-        std::make_pair(std::string("content-length"), http2::header_value{std::to_string(res_content_len), false}));
-    res.write_head(status, std::move(hm));
-    res.end(std::move(data));
+    std::size_t content_len;
+    auto* content_ptr = lua_tolstring(L, -1, &content_len);
+    req->send_response(status, boost::string_ref(content_ptr, content_len));
     // Clean up (remove return value and the traceback)
     lua_pop(L, 2);
     free_lua_state(Lex);
@@ -688,81 +601,41 @@ void lua_engine::push_cookies(lua_State* L, const std::string& cookies) {
     }
 }
 
-void lua_engine::push_http_request(lua_State* L, const session::request_type::pointer req) {
+void lua_engine::push_request(lua_State* L, request::pointer req) {
     lua_createtable(L, 0, 9);
     lua_pushinteger(L, std::time(nullptr));
     lua_setfield(L, -2, "timestamp");
-    lua_pushstring(L, req->method.c_str());
+    lua_pushstring(L, req->method().c_str());
     lua_setfield(L, -2, "method");
-    lua_pushstring(L, req->proto.c_str());
+    lua_pushstring(L, req->proto().c_str());
     lua_setfield(L, -2, "proto");
-    auto hdr = req->message.headers().find("host");
-    if (hdr != req->message.headers().end()) {
-        lua_pushstring(L, hdr->second.c_str());
-    } else {
-        lua_pushstring(L, "");
-    }
+    lua_pushstring(L, req->host().c_str());
     lua_setfield(L, -2, "host");
-    lua_pushstring(L, req->path.c_str());
+    lua_pushstring(L, req->path().c_str());
     lua_setfield(L, -2, "path");
-    lua_createtable(L, 0, req->message.headers().size());
-    for (auto& kv : req->message.headers()) {
-        lua_pushstring(L, kv.second.c_str());
-        lua_setfield(L, -2, kv.first.c_str());
-    }
+    lua_createtable(L, 0, req->headers_size());
+    std::for_each(req->headers_begin(), req->headers_end(), [L](const request::header_type h) {
+        lua_pushstring(L, h.second.c_str());
+        lua_setfield(L, -2, h.first.c_str());
+    });
     lua_setfield(L, -2, "headers");
-    auto addr = req->remote_endpoint.address();
+    auto addr = req->remote_endpoint().address();
     lua_pushstring(L, addr.to_string().c_str());
     lua_setfield(L, -2, "remote_addr_str");
     lua_pushinteger(L, addr.is_v4() ? 4 : 6);
     lua_setfield(L, -2, "remote_addr_ip_ver");
-    hdr = req->message.headers().find("cookie");
-    if (hdr != req->message.headers().end()) {
-        push_cookies(L, hdr->second);
+    if (req->header_exists("cookie")) {
+        push_cookies(L, req->header("cookie"));
         lua_setfield(L, -2, "cookies");
     }
-    if (req->method[0] == 'P') {  // we allow only GET and POST, so checking the first char is enough
-        lua_pushlstring(L, reinterpret_cast<const char*>(req->message.body().data()), req->message.body().size());
+    if (req->method()[0] == 'P') {  // we allow only GET and POST, so checking the first char is enough
+        auto content = req->content();
+        lua_pushlstring(L, content.data(), content.size());
         lua_setfield(L, -2, "content");
     }
 }
 
-void lua_engine::push_http_request(lua_State* L, const http2::server::request& req, const std::string& path,
-                                   std::shared_ptr<http2_content_buffer_type> content) {
-    lua_createtable(L, 0, 9);
-    lua_pushinteger(L, std::time(nullptr));
-    lua_setfield(L, -2, "timestamp");
-    lua_pushstring(L, req.method().c_str());
-    lua_setfield(L, -2, "method");
-    lua_pushstring(L, req.uri().scheme.c_str());
-    lua_setfield(L, -2, "proto");
-    lua_pushstring(L, req.uri().host.c_str());
-    lua_setfield(L, -2, "host");
-    lua_pushstring(L, path.c_str());
-    lua_setfield(L, -2, "path");
-    lua_createtable(L, 0, req.header().size());
-    for (auto& kv : req.header()) {
-        lua_pushstring(L, kv.second.value.c_str());
-        lua_setfield(L, -2, kv.first.c_str());
-    }
-    lua_setfield(L, -2, "headers");
-    auto addr = req.remote_endpoint().address();
-    lua_pushstring(L, addr.to_string().c_str());
-    lua_setfield(L, -2, "remote_addr_str");
-    lua_pushinteger(L, addr.is_v4()? 4: 6);
-    lua_setfield(L, -2, "remote_addr_ip_ver");
-    auto hdr = req.header().find("cookie");
-    if (hdr != req.header().end()) {
-        push_cookies(L, hdr->second.value.c_str());
-        lua_setfield(L, -2, "cookies");
-    }
-    if (nullptr != content) {
-        lua_pushlstring(L, reinterpret_cast<const char*>(content->data()), content->size());
-        lua_setfield(L, -2, "content");
-    }
-}
-
-void lua_engine::push_http_response(lua_State* L) {
+void lua_engine::push_response(lua_State* L) {
     lua_createtable(L, 0, 3);
     lua_pushinteger(L, 200);
     lua_setfield(L, -2, "status");

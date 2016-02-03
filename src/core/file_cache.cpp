@@ -25,12 +25,9 @@ file_cache::file::file(const std::string& name, bool read_from_disk) {
                 std::ifstream is(name, std::ifstream::binary);
                 if (is) {
                     m_data.reserve(m_size);
-                    is.read(m_data.data(), m_size);
-                    if (is) {
-                        m_good = true;
-                    } else {
-                        log_err("can't read complete file " << name);
-                    }
+                    std::copy(std::istreambuf_iterator<char>(is), std::istreambuf_iterator<char>(),
+                              std::back_inserter(m_data));
+                    m_good = true;
                 } else {
                     log_err("can't open file " << name);
                 }
@@ -67,12 +64,10 @@ file_cache::file_cache(int refresh_time) {
                     if (exists(p)) {
                         if (*pair.second != file(pair.first)) {
                             // changed file
-                            log_debug("reloading changed object " << pair.first);
                             to_add.push_back(pair.first);
                         }
                     } else {
                         // file does not exists, remove it
-                        log_debug("removing object " << pair.first);
                         to_remove.push_back(pair.first);
                     }
                 }
@@ -102,28 +97,30 @@ bool file_cache::scan_directory(const std::string& name) {
                 std::shared_ptr<file> f = get_file(entry.path().string());
                 if (nullptr == f) {
                     // new file
-                    log_debug("loading object " << entry.path().string());
                     add_file(entry.path().string());
                 }
             }
         }
         return true;
     }
+    log_debug(name << " is no direcotory or does not exists");
     return false;
 }
 
-void file_cache::add_directory(const std::string& name) {
+bool file_cache::add_directory(const std::string& name) {
     if (scan_directory(name)) {
         log_debug("added directory " << name);
         std::lock_guard<std::mutex> lock(m_dir_mtx);
         m_directories.insert(name);
-    } else {
-        log_err(name << " not added");
+        return true;
     }
+    log_err(name << " not added");
+    return false;
 }
 
 bool file_cache::add_file(const std::string& name) {
     auto f = std::make_shared<file>(name, true);
+    log_debug("loaded object " << name << " (" << f->size() << " bytes)");
     if (f->good()) {
         std::lock_guard<std::mutex> lock(m_file_mtx);
         m_file_map[name] = f;
@@ -133,6 +130,7 @@ bool file_cache::add_file(const std::string& name) {
 }
 
 void file_cache::remove_file(const std::string& name) {
+    log_debug("removing object " << name);
     std::lock_guard<std::mutex> lock(m_file_mtx);
     auto it = m_file_map.find(name);
     if (m_file_map.end() != it) {

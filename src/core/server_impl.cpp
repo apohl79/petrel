@@ -11,6 +11,7 @@
 
 #include "server.h"
 #include "server_impl.h"
+#include "request.h"
 #include "session.h"
 #include "log.h"
 #include "options.h"
@@ -92,17 +93,17 @@ void server_impl::start_http2() {
     m_http2_server->handle(
         "/", [this](const http2::server::request& req, const http2::server::response& res) {
             if (req.method() == "GET") {
-                auto& route = m_router.find_route_http2(req.uri().raw_path);
-                route(req, res, nullptr);
+                auto& route = m_router.find_route(req.uri().raw_path);
+                route(std::make_shared<request>(req, res, *m_server, nullptr));
             } else if (req.method() == "POST") {
                 log_debug("receiving content body");
-                auto buf = std::make_shared<http2_content_buffer_type>();
+                auto buf = std::make_shared<request::http2_content_buffer_type>();
                 req.on_data([this, buf, &req, &res](const uint8_t* data, std::size_t len) {
                     if (len == 0) {
                         log_debug("received all content data");
                         // received all content, route the request now
-                        auto& route = m_router.find_route_http2(req.uri().raw_path);
-                        route(req, res, buf);
+                        auto& route = m_router.find_route(req.uri().raw_path);
+                        route(std::make_shared<request>(req, res, *m_server, buf));
                     } else {
                         log_debug("received content chunk of " << len << " bytes");
                         // resize the buffer if needed
@@ -114,10 +115,8 @@ void server_impl::start_http2() {
                 });
             } else {
                 m_metric_not_impl->increment();
-                auto hm = http2::header_map();
-                hm.emplace(std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
-                res.write_head(501, std::move(hm));
-                res.end();
+                request r(req, res, *m_server, nullptr);
+                r.send_error_response(501);
             }
         });
     // Check for SSL
@@ -171,105 +170,94 @@ void server_impl::start_http() {
     };
 }
 
-void server_impl::add_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
-                                  metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
-    m_router
-        .add_route(
-            path, [this, &path, func, metric_req, metric_times, metric_err](
-                      const http2::server::request& req, const http2::server::response& res,
-                      std::shared_ptr<http2_content_buffer_type> content) {
-                log_debug("incomong request: method=" << req.method() << " path='" << req.uri().raw_path << "' query='"
-                                                      << req.uri().raw_query << "' -> func=" << func);
-                // reset the idle counter to stay responsive when we get traffic
-                fiber_sched_algorithm::reset_idle_counter();
-                // total requests
-                m_metric_requests->increment();
-                // path requests
-                metric_req->increment();
-                // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber
-                // finishes,
-                // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
-                std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
-                auto times = std::make_shared<metrics::timer::duration>(l);
-                try {
-                    // create a fiber and run the request handler
-                    bf::fiber([this, func, &req, content, &res, times, metric_err] {
-                        try {
-                            m_lua_engine.handle_http_request(func, req, res, *m_server, content);
-                        } catch (std::runtime_error& e) {
-                            m_metric_errors->increment();
-                            metric_err->increment();
-                            auto hm = http2::header_map();
-                            hm.emplace(std::make_pair(std::string("server"),
-                                                      http2::header_value{std::string("petrel"), false}));
-                            res.write_head(500, std::move(hm));
-                            res.end();
-                        }
-                    }).detach();
-                } catch (std::runtime_error& e) {
-                    m_metric_errors->increment();
-                    metric_err->increment();
-                    auto hm = http2::header_map();
-                    hm.emplace(
-                        std::make_pair(std::string("server"), http2::header_value{std::string("petrel"), false}));
-                    res.write_head(500, std::move(hm));
-                    res.end();
-                }
-            });
-}
-
-void server_impl::add_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
-                                 metrics::meter::pointer metric_err, metrics::timer::pointer metric_times) {
-    m_router.add_route(
-        path, [this, &path, func, metric_req, metric_times, metric_err](session::request_type::pointer req) {
-            log_debug("incomong request: method=" << req->method << " path='" << req->path << "' -> func = " << func);
-            // reset the idle counter to stay responsive when we get traffic
-            fiber_sched_algorithm::reset_idle_counter();
-            // we support only GET/POST
-            if (req->method == "GET" || req->method == "POST") {
-                // total requests
-                m_metric_requests->increment();
-                // path requests
-                metric_req->increment();
-                // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber
-                // finishes,
-                // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
-                std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
-                auto times = std::make_shared<metrics::timer::duration>(l);
-                try {
-                    // create a fiber and run the request handler
-                    bf::fiber([this, func, req, times, metric_err]() mutable {
-                        try {
-                            m_lua_engine.handle_http_request(func, req);
-                        } catch (std::runtime_error& e) {
-                            m_metric_errors->increment();
-                            metric_err->increment();
-                            req->send_error_response(500);
-                        }
-                    }).detach();
-                } catch (std::runtime_error& e) {
-                    m_metric_errors->increment();
-                    metric_err->increment();
-                    req->send_error_response(500);
-                }
-            } else {
-                m_metric_not_impl->increment();
-                req->send_error_response(501);
-            }
-        });
-}
-
 void server_impl::add_route(const std::string& path, const std::string& func) {
     auto metric_req = m_registry.register_metric<metrics::meter>("requests_" + func);
     auto metric_err = m_registry.register_metric<metrics::meter>("errors_" + func);
     auto metric_times = m_registry.register_metric<metrics::timer>("times_" + func);
-    if (options::opts.count("server.http2")) {
-        add_route_http2(path, func, metric_req, metric_err, metric_times);
-    } else {
-        add_route_http(path, func, metric_req, metric_err, metric_times);
-    }
+    m_router.add_route(path, [this, func, metric_req, metric_times, metric_err](request::pointer req) {
+        log_debug("incomong request: method=" << req->method() << " path='" << req->path() << "' -> func=" << func);
+        // reset the idle counter to stay responsive when we get traffic
+        fiber_sched_algorithm::reset_idle_counter();
+        // we support only GET/POST
+        if (req->method() == "GET" || req->method() == "POST") {
+            // total requests
+            m_metric_requests->increment();
+            // path requests
+            metric_req->increment();
+            // timers (we create a shared_ptr of a duration and pass it into the fiber lambda, once the fiber
+            // finishes,
+            // the duration gets destroyed and updates the timers, so we measure the fiber lifetime)
+            std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
+            auto times = std::make_shared<metrics::timer::duration>(l);
+            try {
+                // create a fiber and run the request handler
+                bf::fiber([this, func, req, times, metric_err] {
+                    try {
+                        m_lua_engine.handle_request(func, req);
+                    } catch (std::runtime_error& e) {
+                        log_debug("handle_request failed: " << e.what());
+                        m_metric_errors->increment();
+                        metric_err->increment();
+                        req->send_error_response(500);
+                    }
+                }).detach();
+            } catch (std::runtime_error& e) {
+                log_debug("fiber failed: " << e.what());
+                m_metric_errors->increment();
+                metric_err->increment();
+                req->send_error_response(500);
+            }
+        } else {
+            m_metric_not_impl->increment();
+            req->send_error_response(501);
+        }
+    });
     m_num_routes++;
     log_info("  new route: " << path << " -> " << func);
+}
+
+void server_impl::add_directory_route(const std::string& path, const std::string& dir) {
+    if (m_file_cache.add_directory(dir)) {
+        auto metric_req = m_registry.register_metric<metrics::meter>("requests_static_files");
+        auto metric_err = m_registry.register_metric<metrics::meter>("errors_static_files");
+        auto metric_times = m_registry.register_metric<metrics::timer>("times_static_files");
+        m_router.add_route(path, [this, path, dir, metric_req, metric_times, metric_err](request::pointer req) {
+            log_debug("incomong request: method=" << req->method() << " path='" << req->path()
+                                                  << "' -> static_dir=" << dir);
+            fiber_sched_algorithm::reset_idle_counter();
+            if (req->method() == "GET") {
+                std::initializer_list<metrics::timer::pointer> l{m_metric_times, metric_times};
+                metrics::timer::duration times(l);
+                auto file = find_static_file(dir, path, req->path());
+                if (nullptr != file) {
+                    req->send_response(200, boost::string_ref(file->data().data(), file->size()));
+                    m_metric_requests->increment();
+                    metric_req->increment();
+                    return;
+                }
+            }
+            m_metric_errors->increment();
+            metric_err->increment();
+            req->send_error_response(404);
+        });
+        m_num_routes++;
+        log_info("  new route: " << path << " -> static_dir:" << dir);
+    }
+}
+
+std::shared_ptr<file_cache::file> server_impl::find_static_file(const std::string& dir, const std::string& path,
+                                                                const std::string& req_path) {
+    if (req_path[req_path.size() - 1] == '/') {
+        return nullptr;
+    }
+    auto file = dir;
+    file += req_path.substr(path.size());
+    auto ret = m_file_cache.get_file(file);
+    if (nullptr != ret) {
+        return ret;
+    }
+    log_debug("file " << file << " not found");
+    return nullptr;
 }
 
 void server_impl::run_http2_server() {

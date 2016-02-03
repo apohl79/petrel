@@ -26,6 +26,7 @@
 #include "metrics/registry.h"
 #include "metrics/meter.h"
 #include "metrics/timer.h"
+#include "file_cache.h"
 #include "boost/http/buffered_socket.hpp"
 
 namespace petrel {
@@ -39,8 +40,6 @@ namespace bs = boost::system;
 class server_impl: boost::noncopyable {
   public:
     set_log_tag_default_priority("server");
-
-    using http2_content_buffer_type = router::http2_content_buffer_type;
 
     /// Ctor.
     server_impl(server* srv);
@@ -60,6 +59,9 @@ class server_impl: boost::noncopyable {
     /// Install a lua function as handler for a path.
     void add_route(const std::string& path, const std::string& func);
 
+    /// Add a static directory route
+    void add_directory_route(const std::string& path, const std::string& dir);
+
     /// Return an io_service via round robin
     inline worker& get_worker() {
         auto next = m_next_worker.fetch_add(1, std::memory_order_relaxed);
@@ -67,24 +69,19 @@ class server_impl: boost::noncopyable {
     }
 
     /// Return the lua engine
-    inline lua_engine& get_lua_engine() {
-        return m_lua_engine;
-    }
+    inline lua_engine& get_lua_engine() { return m_lua_engine; }
 
     /// Return the resolver cache
-    inline resolver_cache& get_resolver_cache() {
-        return m_resolver_cache;
-    }
+    inline resolver_cache& get_resolver_cache() { return m_resolver_cache; }
 
     /// Return the router
-    inline router& get_router() {
-        return m_router;
-    }
+    inline router& get_router() { return m_router; }
 
     /// Return the metrics registry
-    inline metrics::registry& get_metrics_registry() {
-        return m_registry;
-    }
+    inline metrics::registry& get_metrics_registry() { return m_registry; }
+
+    /// Return the file cache
+    inline file_cache& get_file_cache() { return m_file_cache; }
 
   private:
     /// Pointer to the server wrapper object
@@ -101,6 +98,7 @@ class server_impl: boost::noncopyable {
     resolver_cache m_resolver_cache;
     router m_router;
     metrics::registry m_registry;
+    file_cache m_file_cache;
 
     /// HTTP2 mode
     std::unique_ptr<http2::server::http2> m_http2_server;
@@ -115,12 +113,12 @@ class server_impl: boost::noncopyable {
 
     void start_http2();
     void start_http();
-    void add_route_http2(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
-                         metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
-    void add_route_http(const std::string& path, const std::string& func, metrics::meter::pointer metric_req,
-                        metrics::meter::pointer metric_err, metrics::timer::pointer metric_times);
+
     void run_http2_server();
     void run_http2_tls_server();
+
+    std::shared_ptr<file_cache::file> find_static_file(const std::string& dir, const std::string& path,
+                                                       const std::string& req_path);
 };
 
 } // petrel

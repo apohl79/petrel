@@ -34,10 +34,12 @@ class file_cache : boost::noncopyable {
         set_log_tag("file_cache::file");
 
       public:
+        using buffer_type = std::vector<char>;
+
         file(const std::string& name, bool read_from_disk = false);
 
         /// Return the file data
-        const std::vector<char>& data() const { return m_data; }
+        const buffer_type& data() const { return m_data; }
 
         /// Return the size of the file
         std::size_t size() const { return m_size; }
@@ -50,7 +52,7 @@ class file_cache : boost::noncopyable {
 
       private:
         std::string m_name;
-        std::vector<char> m_data;
+        buffer_type m_data;
         std::size_t m_size = 0;
         std::time_t m_time = 0;
         bool m_good = false;
@@ -62,7 +64,8 @@ class file_cache : boost::noncopyable {
     /// Add a directory to the cache
     ///
     /// @param name The absolute path of the directory
-    void add_directory(const std::string& name);
+    /// @return true on success
+    bool add_directory(const std::string& name);
 
     /// Add a single file to the cache
     ///

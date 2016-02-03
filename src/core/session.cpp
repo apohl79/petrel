@@ -11,9 +11,7 @@
 #include "session.h"
 #include "server.h"
 #include "router.h"
-#include "metrics/registry.h"
-#include "metrics/meter.h"
-#include "metrics/timer.h"
+
 #include "boost/http/algorithm.hpp"
 
 namespace petrel {
@@ -54,8 +52,8 @@ void session::start() {
                 }
             }
             // find a handler and execute it
-            auto& route = m_srv.get_router().find_route_http(req->path);
-            route(req);
+            auto& route = m_srv.get_router().find_route(req->path);
+            route(std::make_shared<::petrel::request>(req));
             // wait for the response to become ready
             // TODO: implement parallel pipeline request processing by queing up responses, as we need to preserve the
             // order. boost.http does not support this, see socket-inl.hpp:167. Once we call async_read_request again,

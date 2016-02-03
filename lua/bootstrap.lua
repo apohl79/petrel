@@ -12,5 +12,6 @@ function bootstrap()
    --petrel.load_lib("petrel_mylib")
 
    -- Setup request handlers
-   petrel.set_route("/", "handle_request")
+   petrel.add_route("/", "handle_request")
+   petrel.add_directory_route("/files", "/tmp/petrel/")
 end

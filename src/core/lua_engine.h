@@ -16,23 +16,16 @@
 #include <initializer_list>
 
 #include <boost/core/noncopyable.hpp>
-#include <boost/fiber/all.hpp>
-
-#include <nghttp2/asio_http2_server.h>
 
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
 
 #include "log.h"
-#include "session.h"
+#include "request.h"
 #include "metrics/counter.h"
 
 namespace petrel {
-
-namespace http = boost::http;
-namespace http2 = nghttp2::asio_http2;
-namespace bf = boost::fibers;
 
 using lib_load_func_type = std::function<void()>;
 
@@ -68,8 +61,6 @@ class lua_engine : boost::noncopyable {
     // Add static log members
     decl_log_static();
 
-    using http2_content_buffer_type = std::vector<std::uint8_t>;
-
     /// Start a thread that watches the available lua states. It creates new states or updates the available states with
     /// new lua code.
     void start(server& srv);
@@ -94,11 +85,7 @@ class lua_engine : boost::noncopyable {
     /// Call the bootstrap function in lua to setup the server
     void bootstrap(server& srv);
     /// Handle an incoming http request
-    void handle_http_request(const std::string& func, session::request_type::pointer req);
-    /// Handle an incoming http2 request
-    void handle_http_request(const std::string& func, const http2::server::request& req,
-                             const http2::server::response& res, server& srv,
-                             std::shared_ptr<http2_content_buffer_type> content);
+    void handle_request(const std::string& func, request::pointer req);
 
     /// Find scripts in a directory and it's sub directories
     static void load_script_dir(const std::string& dir, std::vector<std::string>& vec);
@@ -174,12 +161,9 @@ class lua_engine : boost::noncopyable {
     /// Create a cookie table on the given lua state
     void push_cookies(lua_State* L, const std::string& cookies);
     /// Create a lua table object out of the http request and push it to the stack
-    void push_http_request(lua_State* L, const session::request_type::pointer req);
-    /// Create a lua table object out of the http2 request and push it to the stack
-    void push_http_request(lua_State* L, const http2::server::request& req, const std::string& path,
-                           std::shared_ptr<http2_content_buffer_type> content);
+    void push_request(lua_State* L, const request::pointer req);
     /// Create an empty response lua table that has all required fields and some defaults
-    void push_http_response(lua_State* L);
+    void push_response(lua_State* L);
 
     /// Replacement for lua's print
     static int print(lua_State* L);

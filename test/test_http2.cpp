@@ -35,7 +35,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
     auto& se = s.get_lua_engine();
     se.add_lua_code_to_buffer(
         "function bootstrap() "
-        "  petrel.set_route(\"/\", \"handler\") "
+        "  petrel.add_route(\"/\", \"handler\") "
         "end "
         "function handler(req, res) "
         "  res.content = \"test\" "

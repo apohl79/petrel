@@ -13,7 +13,7 @@
 
 #include <nghttp2/asio_http2_server.h>
 
-#include "session.h"
+#include "request.h"
 #include "boost/http/message.hpp"
 #include "boost/http/status_code.hpp"
 
@@ -25,42 +25,23 @@ namespace http2 = nghttp2::asio_http2;
 /// A router maps path strings to handler functions.
 class router {
   public:
-    using http2_content_buffer_type = std::vector<std::uint8_t>;
-    using route_func_http_type = std::function<void(session::request_type::pointer)>;
-    using route_func_http2_type =
-        std::function<void(const http2::server::request& req, const http2::server::response& res,
-                           std::shared_ptr<http2_content_buffer_type> content)>;
+    using route_func_type = std::function<void(request::pointer)>;
 
     router() {
-        // setup 404 defaults
-        m_http_default = [](session::request_type::pointer req) { req->send_error_response(404); };
-        m_http2_default = [](const http2::server::request&, const http2::server::response& res,
-                             std::shared_ptr<http2_content_buffer_type> content) {
-            res.write_head(404);
-            res.end();
-        };
+        // 404 default
+        m_default_func = [](request::pointer req) { req->send_error_response(404); };
     }
 
     /// Add a route function for a path. All incoming requests starting with the given path string will be handled by
     /// the given function.
-    void add_route(const std::string& path, route_func_http_type func) { m_set_http.insert(path, std::move(func)); }
-    void add_route(const std::string& path, route_func_http2_type func) { m_set_http2.insert(path, std::move(func)); }
+    void add_route(const std::string& path, route_func_type func) { m_set.insert(path, std::move(func)); }
 
-    /// Find a route function for a path for http. A default function will be returned if no function can be found.
-    route_func_http_type& find_route_http(const std::string& path) {
+    /// Find a route function for a path. A default function will be returned if no function can be found.
+    route_func_type& find_route(const std::string& path) {
         try {
-            return m_set_http.find(path);
+            return m_set.find(path);
         } catch (std::runtime_error&) {
-            return m_http_default;
-        }
-    }
-
-    /// Find a route function for a path for http2. A default function will be returned if no function can be found.
-    route_func_http2_type& find_route_http2(const std::string& path) {
-        try {
-            return m_set_http2.find(path);
-        } catch (std::runtime_error&) {
-            return m_http2_default;
+            return m_default_func;
         }
     }
 
@@ -131,11 +112,8 @@ class router {
         node_type root[256];
     };
 
-    path_set<path_node<route_func_http_type>> m_set_http;
-    path_set<path_node<route_func_http2_type>> m_set_http2;
-
-    route_func_http_type m_http_default;
-    route_func_http2_type m_http2_default;
+    path_set<path_node<route_func_type>> m_set;
+    route_func_type m_default_func;
 };
 
 }  // petrel

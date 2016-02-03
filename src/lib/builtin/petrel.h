@@ -23,6 +23,9 @@ class petrel : public library {
     /// called for each request with the given path.
     static int add_route(lua_State* L);
 
+    /// Add a static dir route.
+    static int add_directory_route(lua_State* L);
+
     /// Return the library search path list
     static int lib_search_path(lua_State* L);
 

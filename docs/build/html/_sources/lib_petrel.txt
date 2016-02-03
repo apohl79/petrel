@@ -46,7 +46,7 @@ Usage in LUA::
 
 .. function:: petrel.add_directory_route(path, root)
 
-   Setup a handler route.
+   Setup a static file delivery route.
    
    :param string path: The http query path
    :param string root: The local root directory

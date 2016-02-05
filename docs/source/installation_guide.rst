@@ -81,19 +81,19 @@ Dependencies
    $ curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz
    $ cd lua-5.3.2
 
-Linux::
-  
-   $ make linux CC="$CXX -std=c++11 -fPIC"
-   $ sudo make install
+  Linux::
 
-OS X::
-  
-   $ make posix CC="$CXX -std=c++11"
-   $ make install
+     $ make linux CC="$CXX -std=c++11 -fPIC"
+     $ sudo make install
 
-All::
-  
-   $ cd ..
+  OS X::
+    
+    $ make posix CC="$CXX -std=c++11"
+    $ make install
+
+  All::
+    
+    $ cd ..
 
 Petrel
 ^^^^^^

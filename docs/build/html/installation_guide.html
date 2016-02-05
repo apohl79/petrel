@@ -180,26 +180,30 @@ $ cd ..
 $ ./bootstrap.sh --prefix=/usr/local/boost_head --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>Linux::</dt>
-<dd><p class="first last">$ echo &#8220;using gcc : : $CXX ;&#8221; &gt; user-config.jam</p>
-</dd>
-<dt>OS X::</dt>
-<dd><p class="first last">$ echo &#8220;using darwin : : $CXX ;&#8221; &gt; user-config.jam</p>
-</dd>
-<dt>All::</dt>
-<dd><p class="first last">$ ./b2 -q &#8211;user-config=user-config.jam headers</p>
-</dd>
-<dt>Linux::</dt>
-<dd><p class="first last">$ sudo ./b2 -q &#8211;user-config=user-config.jam cxxflags=&#8221;-std=c++11 -fPIC&#8221; threading=multi link=static install</p>
-</dd>
-<dt>OS X::</dt>
-<dd><p class="first last">$ ./b2 -q &#8211;layout=tagged &#8211;user-config=user-config.jam threading=multi link=static cxxflags=&#8221;-std=c++11 -stdlib=libc++&#8221; linkflags=&#8221;-stdlib=libc++&#8221; install</p>
-</dd>
-<dt>All::</dt>
-<dd><p class="first last">$ cd ..</p>
-</dd>
-</dl>
+<p>Linux:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ echo &quot;using gcc : : $CXX ;&quot; &gt; user-config.jam
+</pre></div>
+</div>
+<p>OS X:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ echo &quot;using darwin : : $CXX ;&quot; &gt; user-config.jam
+</pre></div>
+</div>
+<p>All:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ ./b2 -q --user-config=user-config.jam headers
+</pre></div>
+</div>
+<p>Linux:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ sudo ./b2 -q --user-config=user-config.jam cxxflags=&quot;-std=c++11 -fPIC&quot; threading=multi link=static install
+</pre></div>
+</div>
+<p>OS X:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ ./b2 -q --layout=tagged --user-config=user-config.jam threading=multi link=static cxxflags=&quot;-std=c++11 -stdlib=libc++&quot; linkflags=&quot;-stdlib=libc++&quot; install
+</pre></div>
+</div>
+<p>All:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cd ..
+</pre></div>
+</div>
 </li>
 <li><p class="first"><strong>nghttp2</strong>:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.7.0/nghttp2-1.7.0.tar.bz2 | tar xj
@@ -217,16 +221,20 @@ $ cd lua-5.3.2
 </div>
 </li>
 </ol>
-<dl class="docutils">
-<dt>Linux::</dt>
-<dd>$ make linux CC=&#8221;$CXX -std=c++11 -fPIC&#8221;
-$ sudo make install</dd>
-<dt>OS X::</dt>
-<dd>$ make posix CC=&#8221;$CXX -std=c++11&#8221;
-$ make install</dd>
-<dt>All::</dt>
-<dd>$ cd ..</dd>
-</dl>
+<p>Linux:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ make linux CC=&quot;$CXX -std=c++11 -fPIC&quot;
+$ sudo make install
+</pre></div>
+</div>
+<p>OS X:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ make posix CC=&quot;$CXX -std=c++11&quot;
+$ make install
+</pre></div>
+</div>
+<p>All:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cd ..
+</pre></div>
+</div>
 </div>
 <div class="section" id="petrel">
 <h2>Petrel<a class="headerlink" href="#petrel" title="Permalink to this headline">¶</a></h2>
@@ -237,15 +245,19 @@ $ mkdir build
 $ cd build
 </pre></div>
 </div>
-<dl class="docutils">
-<dt>Linux::</dt>
-<dd>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..</dd>
-<dt>OS X::</dt>
-<dd>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..</dd>
-<dt>All::</dt>
-<dd>$ make
-$ sudo make install</dd>
-</dl>
+<p>Linux:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
+</pre></div>
+</div>
+<p>OS X:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+</pre></div>
+</div>
+<p>All:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ make
+$ sudo make install
+</pre></div>
+</div>
 </div>
 </div>
 

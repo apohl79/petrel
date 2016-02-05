@@ -44,21 +44,27 @@ Dependencies
      $ ./bootstrap.sh --prefix=/usr/local/boost_head --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test
      
    Linux::
+     
      $ echo "using gcc : : $CXX ;" > user-config.jam
      
    OS X::
+     
      $ echo "using darwin : : $CXX ;" > user-config.jam
 
    All::
+     
      $ ./b2 -q --user-config=user-config.jam headers
 
    Linux::
+     
      $ sudo ./b2 -q --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install
 
    OS X::
+     
      $ ./b2 -q --layout=tagged --user-config=user-config.jam threading=multi link=static cxxflags="-std=c++11 -stdlib=libc++" linkflags="-stdlib=libc++" install
      
    All::
+     
      $ cd ..
 
 #. **nghttp2**::
@@ -76,14 +82,17 @@ Dependencies
    $ cd lua-5.3.2
 
 Linux::
+  
    $ make linux CC="$CXX -std=c++11 -fPIC"
    $ sudo make install
 
 OS X::
+  
    $ make posix CC="$CXX -std=c++11"
    $ make install
 
 All::
+  
    $ cd ..
 
 Petrel
@@ -97,11 +106,14 @@ To build and install petrel run the following commands::
   $ cd build
 
 Linux::
+  
   $ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
 
 OS X::
+  
   $ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
 
 All::
+  
   $ make
   $ sudo make install

@@ -37,7 +37,7 @@ include_directories(../src/lib)
 include_directories(../src/metrics)
 include_directories(../src/boost/http/include)
 include_directories(${Boost_INCLUDE_DIRS})
-include_directories(${OPENSSL_INCLUDE_DIRS})
+include_directories(${OPENSSL_INCLUDE_DIR})
 include_directories(${LUA_INCLUDE_DIR})
 include_directories(${NGHTTP2_INCLUDE_DIRS})
 

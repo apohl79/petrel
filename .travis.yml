@@ -81,7 +81,7 @@ before_script:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
   - popd
   - export CC=$USE_CC; export CXX=$USE_CXX
-  - curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.6.0/nghttp2-1.7.0.tar.bz2 | tar xj
+  - curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.7.0/nghttp2-1.7.0.tar.bz2 | tar xj
   - pushd "nghttp2-1.7.0"
   - ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
   - sudo make install

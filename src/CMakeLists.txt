@@ -30,8 +30,8 @@ find_package(Boost 1.59.0 COMPONENTS
 find_package(OpenSSL REQUIRED)
 find_package(LUA REQUIRED)
 find_package(PkgConfig)
-pkg_check_modules(NGHTTP2 libnghttp2)
-pkg_check_modules(NGHTTP2_ASIO libnghttp2_asio)
+pkg_check_modules(NGHTTP2 REQUIRED libnghttp2)
+pkg_check_modules(NGHTTP2_ASIO REQUIRED libnghttp2_asio)
 
 set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
 

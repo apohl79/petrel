@@ -126,12 +126,12 @@ You should find the file ``libpetrel_mylib.so`` in your build directory.
 To make petrel load our library we have to update our ``bootstrap()`` function (see :ref:`bootstrap`). The new version looks like this (assuming you have put your lib project into /tmp)::
   
   function bootstrap()
-      petrel.set_route("/json/", "json_handler")
-      petrel.set_route("/text/", "text_handler")
+      petrel.add_route("/json/", "json_handler")
+      petrel.add_route("/text/", "text_handler")
 
       petrel.add_lib_search_path("/tmp/mylib/build")
       petrel.load_lib("petrel_mylib")
-      petrel.set_route("/libtest/", "libtest_handler")
+      petrel.add_route("/libtest/", "libtest_handler")
   end
 
 We also add a new request handler ``libtest_handler()`` by creating ``libtest_handler.lua``::

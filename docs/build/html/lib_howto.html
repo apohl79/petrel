@@ -252,12 +252,12 @@ $ make
 <p>You should find the file <code class="docutils literal"><span class="pre">libpetrel_mylib.so</span></code> in your build directory.</p>
 <p>To make petrel load our library we have to update our <code class="docutils literal"><span class="pre">bootstrap()</span></code> function (see <a class="reference internal" href="getting_started.html#bootstrap"><span>Bootstrap</span></a>). The new version looks like this (assuming you have put your lib project into /tmp):</p>
 <div class="highlight-python"><div class="highlight"><pre>function bootstrap()
-    petrel.set_route(&quot;/json/&quot;, &quot;json_handler&quot;)
-    petrel.set_route(&quot;/text/&quot;, &quot;text_handler&quot;)
+    petrel.add_route(&quot;/json/&quot;, &quot;json_handler&quot;)
+    petrel.add_route(&quot;/text/&quot;, &quot;text_handler&quot;)
 
     petrel.add_lib_search_path(&quot;/tmp/mylib/build&quot;)
     petrel.load_lib(&quot;petrel_mylib&quot;)
-    petrel.set_route(&quot;/libtest/&quot;, &quot;libtest_handler&quot;)
+    petrel.add_route(&quot;/libtest/&quot;, &quot;libtest_handler&quot;)
 end
 </pre></div>
 </div>

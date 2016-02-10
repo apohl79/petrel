@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>base64 Library</title>
+  <title>Docker Guide</title>
   
 
   
@@ -31,9 +31,8 @@
 
   
     <link rel="top" title="None" href="index.html"/>
-        <link rel="up" title="Builtin Libraries" href="builtin_libs.html"/>
-        <link rel="next" title="hash Library" href="lib_hash.html"/>
-        <link rel="prev" title="Builtin Libraries" href="builtin_libs.html"/> 
+        <link rel="next" title="Developer Guide" href="devel_guide.html"/>
+        <link rel="prev" title="Installation Guide" href="installation_guide.html"/> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -85,22 +84,14 @@
                 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
 <li class="toctree-l1"><a class="reference internal" href="installation_guide.html">Installation Guide</a></li>
-<li class="toctree-l1"><a class="reference internal" href="docker_guide.html">Docker Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">Docker Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#use-your-own-code">Use your own code</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="devel_guide.html">Developer Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="config_options.html">Configuration Options</a></li>
 <li class="toctree-l1"><a class="reference internal" href="request_handler.html">Request Handler Interface</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="">base64 Library</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#synopsis">Synopsis</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="lib_hash.html">hash Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib_http_client.html">http_client Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib_http2_client.html">http2_client Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib_metric.html">metric Library</a></li>
-<li class="toctree-l2"><a class="reference internal" href="lib_petrel.html">petrel Library</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="builtin_libs.html">Builtin Libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="native_libs.html">Native Libraries</a></li>
 <li class="toctree-l1"><a class="reference internal" href="lib_howto.html">Native Library Tutorial</a></li>
 <li class="toctree-l1"><a class="reference internal" href="license.html">License</a></li>
@@ -136,9 +127,7 @@
   <ul class="wy-breadcrumbs">
     <li><a href="index.html">Docs</a> &raquo;</li>
       
-          <li><a href="builtin_libs.html">Builtin Libraries</a> &raquo;</li>
-      
-    <li>base64 Library</li>
+    <li>Docker Guide</li>
       <li class="wy-breadcrumbs-aside">
         
           
@@ -150,49 +139,52 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="base64-library">
-<h1>base64 Library<a class="headerlink" href="#base64-library" title="Permalink to this headline">¶</a></h1>
-<p>Encode and decode base64 data.</p>
-<div class="section" id="synopsis">
-<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this headline">¶</a></h2>
-<p>Usage in LUA:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">encoded</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s2">&quot;plain text data&quot;</span><span class="p">)</span>
-
-<span class="n">plain_text</span> <span class="o">=</span> <span class="n">base64</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoded</span><span class="p">)</span>
+  <div class="section" id="docker-guide">
+<h1>Docker Guide<a class="headerlink" href="#docker-guide" title="Permalink to this headline">¶</a></h1>
+<p><a class="reference external" href="https://www.docker.com/">Docker</a> is a container manager for Linux that became quite popular. We have created an <a class="reference external" href="https://hub.docker.com/r/apohl79/petrel/">image</a> and pushed it to Docker Hub (Dockers public image registry).</p>
+<p>You can run a container veray quickly via:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ docker run --name petrel-test -p 8585:8585 -d apohl79/petrel
 </pre></div>
 </div>
-<dl class="function">
-<dt id="base64.encode">
-<code class="descclassname">base64.</code><code class="descname">encode</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#base64.encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Encode input data to base64.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input</strong> (<em>string</em>) &#8211; The input string to be encoded</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(<em>string</em>) - The encoded string</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="base64.decode">
-<code class="descclassname">base64.</code><code class="descname">decode</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="headerlink" href="#base64.decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decode base64 input data.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input</strong> (<em>string</em>) &#8211; The input string to be decoded</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">(<em>string</em>) - The decoded string</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
+<p>Now you can fire a test request to petrel. If you are on linux you can just use localhost. On OS X for example you have to use the IP of your docker VM (should be <code class="docutils literal"><span class="pre">192.168.99.100</span></code> in a default installation):</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl &quot;http://localhost:8585/&quot;
+&lt;html&gt;&lt;head&gt;&lt;title&gt;petrel test page&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;petrel test page&lt;/h1&gt;We got called 6 times&lt;/body&gt;&lt;/html&gt;
+</pre></div>
+</div>
+<div class="section" id="use-your-own-code">
+<h2>Use your own code<a class="headerlink" href="#use-your-own-code" title="Permalink to this headline">¶</a></h2>
+<p>You have two ways of using this image with your own service code:</p>
+<ol class="arabic">
+<li><p class="first">Use volumes to mount you service code into the docker container:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ docker run --name myservice -v /your/lua/dir:/lua:ro -p 8585:8585 -d apohl79/petrel
+</pre></div>
+</div>
+<p>The same way cou change petrels configuration file.</p>
+</li>
+<li><p class="first">Create your own image:</p>
+<ol class="arabic">
+<li><p class="first">Create a new directory and enter it</p>
+</li>
+<li><p class="first">Create a Dockerfile with the following content:</p>
+<div class="highlight-python"><div class="highlight"><pre>FROM apohl79/petrel:latest
+COPY /your/lua/dir/ /lua/
+</pre></div>
+</div>
+<p>Again, if you have a different configuration, just copy it into your image to <code class="docutils literal"><span class="pre">/etc/petrel/petrel.conf</span></code> by using another <code class="docutils literal"><span class="pre">COPY</span></code> command.</p>
+</li>
+<li><p class="first">Now build your image:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ docker build -t myservice .
+</pre></div>
+</div>
+</li>
+<li><p class="first">And run it:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ docker run --name myservice -p 8585:8585 -d myservice
+</pre></div>
+</div>
+</li>
+</ol>
+</li>
+</ol>
 </div>
 </div>
 
@@ -203,10 +195,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="lib_hash.html" class="btn btn-neutral float-right" title="hash Library" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="devel_guide.html" class="btn btn-neutral float-right" title="Developer Guide" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="builtin_libs.html" class="btn btn-neutral" title="Builtin Libraries" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="installation_guide.html" class="btn btn-neutral" title="Installation Guide" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

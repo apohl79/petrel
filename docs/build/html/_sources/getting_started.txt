@@ -5,6 +5,8 @@ This guide describes how you can setup a simple service with petrel.
 
 It is assumed that you have installed petrel already. If not, please follow the :doc:`installation_guide`.
 
+If you use `Docker <https://www.docker.com/>`_ you can also use our `docker image <https://hub.docker.com/r/apohl79/petrel/>`_ available on Docker Hub. Please read the :doc:`docker_guide` for more information.
+
 A service works as follwos:
 
 * You provide request handler functions in LUA (see :doc:`request_handler`).

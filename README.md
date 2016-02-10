@@ -1,7 +1,4 @@
-Petrel
-======
-
-[![Build Status](https://travis-ci.org/apohl79/petrel.svg?branch=master)](https://travis-ci.org/apohl79/petrel)
+# Petrel [![Build Status](https://travis-ci.org/apohl79/petrel.svg?branch=master)](https://travis-ci.org/apohl79/petrel)
 
 What is Petrel?
 ---------------

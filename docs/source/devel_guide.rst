@@ -41,7 +41,7 @@ The workflow to submit a patch would usually look like this:
 
 #. Create a topic branch from master or develop
 #. Commit your changes to the topic brnach
-#. Add unit tests for new code and amke sure all tests pass
+#. Add unit tests for new code and make sure all tests pass
 #. Push the changes to the topic branch in your forked repo on github
 #. Submit a pull request to ``apohl79/petrel``
 

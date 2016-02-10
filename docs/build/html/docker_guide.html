@@ -142,11 +142,11 @@
   <div class="section" id="docker-guide">
 <h1>Docker Guide<a class="headerlink" href="#docker-guide" title="Permalink to this headline">¶</a></h1>
 <p><a class="reference external" href="https://www.docker.com/">Docker</a> is a container manager for Linux that became quite popular. We have created an <a class="reference external" href="https://hub.docker.com/r/apohl79/petrel/">image</a> and pushed it to Docker Hub (Dockers public image registry).</p>
-<p>You can run a container veray quickly via:</p>
+<p>You can run a container very quickly via:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ docker run --name petrel-test -p 8585:8585 -d apohl79/petrel
 </pre></div>
 </div>
-<p>Now you can fire a test request to petrel. If you are on linux you can just use localhost. On OS X for example you have to use the IP of your docker VM (should be <code class="docutils literal"><span class="pre">192.168.99.100</span></code> in a default installation):</p>
+<p>Docker will download the image, create a container named <code class="docutils literal"><span class="pre">petrel-test</span></code> and run it. Now you can fire a test request to petrel. If you are on linux you can just use localhost. On OS X for example you have to use the IP of your docker VM (should be <code class="docutils literal"><span class="pre">192.168.99.100</span></code> in a default installation):</p>
 <div class="highlight-python"><div class="highlight"><pre>$ curl &quot;http://localhost:8585/&quot;
 &lt;html&gt;&lt;head&gt;&lt;title&gt;petrel test page&lt;/title&gt;&lt;/head&gt;&lt;body&gt;&lt;h1&gt;petrel test page&lt;/h1&gt;We got called 6 times&lt;/body&gt;&lt;/html&gt;
 </pre></div>

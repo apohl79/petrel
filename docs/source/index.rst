@@ -3,11 +3,11 @@ petrel - Documentation
 
 Petrel is a web server with HTTP/1 and HTTP/2 support that provides a C++/lua framework for easy micro/web service development.
 
-* It is open source (licensed under MIT, see :doc:`license`)
-* It is written in modern C++ (requires at least C++11) 
-* It combines fibers with LUA (no callbacks, just write your "blocking" code and don't care about threads or non-blocking IO)
-* It provides a C++ library interface to implement performance critical code
-* It provides a LUA framework to implement business logic
+* Open source (licensed under MIT, see :doc:`license`)
+* Written in modern C++ (requires at least C++11) 
+* Combines fibers with LUA (no callbacks, just write your "blocking" code and don't care about threads or non-blocking IO)
+* Provides a C++ library interface to implement performance critical code
+* Provides a LUA framework to implement business logic
 
 Contents
 ^^^^^^^^^

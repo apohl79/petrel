@@ -8,8 +8,7 @@
 #ifndef LIB_METRIC_H
 #define LIB_METRIC_H
 
-#include "lua_engine.h"
-#include "library.h"
+#include "library_builtin.h"
 #include "metrics/basic_metric.h"
 #include "metrics/timer.h"
 
@@ -20,7 +19,7 @@ class metric : public library {
   public:
     enum class type { undef, counter, meter, timer };
 
-    metric(lib_context* ctx) : library(ctx), m_type(type::undef) {}
+    explicit metric(lib_context* ctx) : library(ctx), m_type(type::undef) {}
 
     /// Register a new counter metric.
     /// p1: string name

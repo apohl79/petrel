@@ -8,11 +8,11 @@
 #ifndef LOG_H
 #define LOG_H
 
-#include <syslog.h>
-#include <ostream>
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 #include <memory>
+#include <ostream>
+#include <syslog.h>
 
 #include <boost/utility/string_ref.hpp>
 

@@ -7,12 +7,12 @@
 
 #include <petrel/fiber/yield.hpp>
 
-#include "worker.h"
+#include "fiber_sched_algorithm.h"
+#include "log.h"
+#include "options.h"
 #include "server.h"
 #include "server_impl.h"
-#include "options.h"
-#include "log.h"
-#include "fiber_sched_algorithm.h"
+#include "worker.h"
 
 namespace petrel {
 

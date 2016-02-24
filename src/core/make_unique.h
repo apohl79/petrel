@@ -8,16 +8,16 @@
 #ifndef MAKE_UNIQUE_H
 #define MAKE_UNIQUE_H
 
+#include <memory>
+
 #if __cplusplus <= 201103L
 
 // make_unique is not yet available in C++11
 namespace std {
-
 template <typename T, typename... Args>
 unique_ptr<T> make_unique(Args&&... args) {
     return unique_ptr<T>(new T(forward<Args>(args)...));
 }
-
 }
 
 #endif

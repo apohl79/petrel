@@ -8,18 +8,18 @@
 #ifndef METRICS_REGISTRY_H
 #define METRICS_REGISTRY_H
 
-#include <unordered_map>
-#include <queue>
+#include <atomic>
 #include <memory>
+#include <queue>
 #include <string>
 #include <thread>
-#include <atomic>
+#include <unordered_map>
 
-#include <boost/core/noncopyable.hpp>
 #include <boost/asio.hpp>
+#include <boost/core/noncopyable.hpp>
 
-#include <petrel/metrics/basic_metric.h>
 #include <petrel/core/log.h>
+#include <petrel/metrics/basic_metric.h>
 
 namespace petrel {
 
@@ -35,7 +35,7 @@ class registry : boost::noncopyable {
   public:
     set_log_tag_default_priority("metrics");
 
-    registry(petrel::resolver_cache&);
+    explicit registry(petrel::resolver_cache&);
     ~registry();
 
     /// Register a new metric

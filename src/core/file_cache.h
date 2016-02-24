@@ -8,14 +8,14 @@
 #ifndef FILE_CACHE_H
 #define FILE_CACHE_H
 
-#include <memory>
-#include <string>
-#include <unordered_set>
-#include <unordered_map>
-#include <vector>
-#include <thread>
-#include <mutex>
 #include <boost/core/noncopyable.hpp>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
 
 #include "log.h"
 

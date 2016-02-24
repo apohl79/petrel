@@ -8,15 +8,14 @@
 #ifndef LIB_PETREL_H
 #define LIB_PETREL_H
 
-#include "lua_engine.h"
-#include "library.h"
+#include "library_builtin.h"
 
 namespace petrel {
 namespace lib {
 
 class petrel : public library {
   public:
-    petrel(lib_context* ctx) : library(ctx) {}
+    explicit petrel(lib_context* ctx) : library(ctx) {}
     static void load();
 
     /// Add a route. This function takes two parameters: (1) a path and (2) a lua function name. The function will be

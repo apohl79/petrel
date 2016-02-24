@@ -8,9 +8,9 @@
 #include <boost/utility/string_ref.hpp>
 #include <petrel/fiber/yield.hpp>
 
-#include "session.h"
-#include "server.h"
 #include "router.h"
+#include "server.h"
+#include "session.h"
 
 #include "boost/http/algorithm.hpp"
 
@@ -75,9 +75,8 @@ void session::start() {
 void session::send_response(response_type& res) {
     try {
         auto sc = http::status_code(res.status);
-        m_socket.async_write_response(res.status, http::to_string<boost::string_ref>(sc),
-                                      res.message, bfa::yield);
-    } catch(bs::system_error& e) {
+        m_socket.async_write_response(res.status, http::to_string<boost::string_ref>(sc), res.message, bfa::yield);
+    } catch (bs::system_error& e) {
         log_err("failed to write response: " << e.what());
         socket().close();
     }

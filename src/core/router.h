@@ -8,14 +8,14 @@
 #ifndef ROUTER_H
 #define ROUTER_H
 
-#include <functional>
 #include <algorithm>
+#include <functional>
 
 #include <nghttp2/asio_http2_server.h>
 
-#include "request.h"
 #include "boost/http/message.hpp"
 #include "boost/http/status_code.hpp"
+#include "request.h"
 
 namespace petrel {
 

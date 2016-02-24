@@ -8,14 +8,14 @@
 #ifndef REQUEST_H
 #define REQUEST_H
 
-#include <memory>
 #include <boost/asio.hpp>
 #include <boost/utility/string_ref.hpp>
+#include <memory>
 #include <nghttp2/asio_http2_server.h>
 
+#include "make_unique.h"
 #include "server.h"
 #include "session.h"
-#include "make_unique.h"
 
 namespace petrel {
 
@@ -43,10 +43,10 @@ class request {
         header_iterator& operator++() {
             switch (m_mode) {
                 case mode::HTTP:
-                    m_http_iter++;
+                    ++m_http_iter;
                     break;
                 case mode::HTTP2:
-                    m_http2_iter++;
+                    ++m_http2_iter;
                     break;
             }
             return *this;
@@ -72,7 +72,7 @@ class request {
     };
 
     /// HTTP ctor.
-    request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) {}
+    explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) {}
 
     /// HTTP2 ctor.
     request(const http2::server::request& req, const http2::server::response& res, server& srv,
@@ -214,7 +214,7 @@ class request {
                 }
                 return EMPTY;
             }
-            case mode::HTTP2:{
+            case mode::HTTP2: {
                 auto it = m_http2->request.header().find(name);
                 if (m_http2->request.header().end() != it) {
                     return it->second.value;
@@ -271,9 +271,7 @@ class request {
     }
 
     /// Send an error
-    void send_error_response(int code) {
-        send_response(code, boost::string_ref());
-    }
+    void send_error_response(int code) { send_response(code, boost::string_ref()); }
 
     // Send response
     void send_response(int code, boost::string_ref content) {

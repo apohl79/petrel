@@ -12,6 +12,9 @@
 #include <memory>
 #include <vector>
 
+#include <boost/asio.hpp>
+#include <lua.h>
+
 namespace petrel {
 
 class server;
@@ -36,7 +39,7 @@ struct lib_context {
 /// Library base helper class that provides boost coroutine support.
 class library {
   public:
-    library(lib_context* ctx) : m_context(ctx), m_iosvc(ctx->io_service()) {}
+    explicit library(lib_context* ctx) : m_context(ctx), m_iosvc(ctx->io_service()) {}
     virtual ~library() {}
     inline lib_context& context() const { return *m_context; }
     inline boost::asio::io_service& io_service() const { return m_iosvc; }
@@ -54,7 +57,7 @@ class library {
 
 /// Declare a class to be a library
 #define DECLARE_LIB_BEGIN(NAME)                                                   \
-    namespace {/* will be closed in REGISTER_LIB* */                              \
+    namespace { /* will be closed in REGISTER_LIB* */                             \
     using lib_type = NAME;                                                        \
     using lib_state_init_func_type = std::function<void(lua_State*)>;             \
     using lib_load_func_type = std::function<void()>;                             \
@@ -200,16 +203,6 @@ class library {
 /// Register a static method as library function, that can be called from lua via libname.function(...)
 #define ADD_LIB_FUNCTION(FUNC) int FUNC##_f = lib_add_function(#FUNC, lib_type::FUNC)
 
-/// Register a class as builtin library
-#define DECLARE_LIB_BUILTIN_END()                                                     \
-    int lib_register() {                                                              \
-        lua_engine::register_lib(lib_name, lib_open, lib_init, lib_load, lib_unload); \
-        lib_add_function("new", lib_new);                                             \
-        return 0;                                                                     \
-    }                                                                                 \
-    int register_dummy = lib_register();                                              \
-    }  // namespace opened in DECLARE_LIB
-
 /// Register a class as shared library
 #define DECLARE_LIB_END()                                              \
     extern "C" {                                                       \
@@ -227,7 +220,7 @@ class library {
     int petrel_lib_init(lua_State* L) noexcept { return lib_init(L); } \
     int petrel_lib_open(lua_State* L) noexcept { return lib_open(L); } \
     }                                                                  \
-    }  // namespace opened in DECLARE_LIB
+    }  // namespace opened in DECLARE_LIB_BEGIN
 
 }  // lib
 }  // petrel

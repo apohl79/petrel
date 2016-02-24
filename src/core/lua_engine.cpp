@@ -6,21 +6,21 @@
  */
 
 #include "lua_engine.h"
-#include "server.h"
-#include "options.h"
 #include "lib/library.h"
 #include "metrics/registry.h"
+#include "options.h"
+#include "server.h"
 
-#include <sstream>
-#include <iostream>
-#include <chrono>
 #include <algorithm>
+#include <chrono>
 #include <ctime>
+#include <iostream>
+#include <sstream>
 
-#include <boost/filesystem.hpp>
-#include <boost/asio.hpp>
-#include <boost/utility/string_ref.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/asio.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/utility/string_ref.hpp>
 
 namespace petrel {
 
@@ -221,7 +221,7 @@ void lua_engine::free_lua_state(lua_state_ex L, bool reload_in_new_thread) {
         L.ctx->p_objects->clear();
     }
     if (L.code_version != m_code_version) {
-        auto f = [this, L] () mutable {
+        auto f = [this, L]() mutable {
             L.code_version = m_code_version;
             load_code_from_scripts(L.L);
             load_code_from_buffer(L.L);

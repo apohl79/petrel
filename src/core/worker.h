@@ -9,13 +9,13 @@
 #define WORKER_H
 
 #include <memory>
-#include <vector>
 #include <mutex>
 #include <thread>
+#include <vector>
 
 #include <boost/asio.hpp>
-#include <boost/fiber/all.hpp>
 #include <boost/core/noncopyable.hpp>
+#include <boost/fiber/all.hpp>
 
 #include "session.h"
 

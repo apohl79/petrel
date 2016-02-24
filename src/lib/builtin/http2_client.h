@@ -11,8 +11,7 @@
 #include <memory>
 #include <nghttp2/asio_http2_client.h>
 
-#include "lua_engine.h"
-#include "library.h"
+#include "library_builtin.h"
 
 namespace petrel {
 namespace lib {
@@ -24,7 +23,7 @@ namespace http2 = nghttp2::asio_http2;
 /// http2_client class
 class http2_client : public library {
   public:
-    http2_client(lib_context* ctx) : library(ctx), m_read_timeout(0, 0, 5, 0), m_connect_timeout(0, 0, 5, 0) {}
+    explicit http2_client(lib_context* ctx) : library(ctx), m_read_timeout(0, 0, 5, 0), m_connect_timeout(0, 0, 5, 0) {}
 
     int connect(lua_State* L);
     int disconnect(lua_State* L);
@@ -41,7 +40,7 @@ class http2_client : public library {
     std::unique_ptr<ba::ssl::context> m_tls;
     bp::time_duration m_read_timeout;
     bp::time_duration m_connect_timeout;
-    bool m_connected;
+    bool m_connected = false;
 
     inline void close() {
         if (m_connected) {
@@ -50,7 +49,6 @@ class http2_client : public library {
             m_connected = false;
         }
     }
-
 };
 
 }  // lib

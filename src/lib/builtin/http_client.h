@@ -10,8 +10,7 @@
 
 #include <boost/asio.hpp>
 
-#include "lua_engine.h"
-#include "library.h"
+#include "library_builtin.h"
 
 namespace petrel {
 namespace lib {
@@ -20,10 +19,9 @@ namespace ba = boost::asio;
 namespace bp = boost::posix_time;
 namespace bs = boost::system;
 
-
 class http_client : public library {
   public:
-    http_client(lib_context* ctx)
+    explicit http_client(lib_context* ctx)
         : library(ctx), m_sock(m_iosvc), m_read_timeout(0, 0, 5, 0), m_connect_timeout(0, 0, 5, 0) {}
 
     int connect(lua_State* L);

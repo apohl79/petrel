@@ -8,19 +8,19 @@
 #ifndef METRICS_TIMER_H
 #define METRICS_TIMER_H
 
-#include <chrono>
-#include <memory>
-#include <vector>
-#include <array>
-#include <mutex>
-#include <limits>
 #include <algorithm>
+#include <array>
+#include <chrono>
 #include <initializer_list>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <vector>
 
 #include <boost/fiber/all.hpp>
 
-#include <petrel/metrics/basic_metric.h>
 #include <petrel/core/log.h>
+#include <petrel/metrics/basic_metric.h>
 
 namespace petrel {
 namespace metrics {
@@ -40,9 +40,11 @@ class timer : public basic_metric {
 
       public:
         /// Create an object and assign a timer
-        duration(timer::pointer t) : m_start(std::chrono::high_resolution_clock::now()) { m_timers.push_back(t); }
+        explicit duration(timer::pointer t) : m_start(std::chrono::high_resolution_clock::now()) {
+            m_timers.push_back(t);
+        }
         /// Create an object and assign a list of timers
-        duration(std::initializer_list<timer::pointer> l)
+        explicit duration(std::initializer_list<timer::pointer> l)
             : m_timers(l), m_start(std::chrono::high_resolution_clock::now()) {}
         ~duration() { update(); }
         /// Reset the start timer_point

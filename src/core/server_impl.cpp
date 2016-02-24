@@ -5,18 +5,18 @@
  * Author: Andreas Pohl
  */
 
-#include <unistd.h>
 #include <boost/fiber/all.hpp>
 #include <petrel/fiber/yield.hpp>
+#include <unistd.h>
 
+#include "fiber_sched_algorithm.h"
+#include "log.h"
+#include "make_unique.h"
+#include "options.h"
+#include "request.h"
 #include "server.h"
 #include "server_impl.h"
-#include "request.h"
 #include "session.h"
-#include "log.h"
-#include "options.h"
-#include "fiber_sched_algorithm.h"
-#include "make_unique.h"
 
 namespace petrel {
 
@@ -90,35 +90,34 @@ void server_impl::stop() {
 
 void server_impl::start_http2() {
     // install a handler that uses our own router
-    m_http2_server->handle(
-        "/", [this](const http2::server::request& req, const http2::server::response& res) {
-            if (req.method() == "GET") {
-                auto& route = m_router.find_route(req.uri().raw_path);
-                route(std::make_shared<request>(req, res, *m_server, nullptr));
-            } else if (req.method() == "POST") {
-                log_debug("receiving content body");
-                auto buf = std::make_shared<request::http2_content_buffer_type>();
-                req.on_data([this, buf, &req, &res](const uint8_t* data, std::size_t len) {
-                    if (len == 0) {
-                        log_debug("received all content data");
-                        // received all content, route the request now
-                        auto& route = m_router.find_route(req.uri().raw_path);
-                        route(std::make_shared<request>(req, res, *m_server, buf));
-                    } else {
-                        log_debug("received content chunk of " << len << " bytes");
-                        // resize the buffer if needed
-                        if (buf->capacity() - buf->size() < len) {
-                            buf->reserve(buf->capacity() + len + 1024);
-                        }
-                        std::copy(data, data + len, std::back_inserter(*buf));
+    m_http2_server->handle("/", [this](const http2::server::request& req, const http2::server::response& res) {
+        if (req.method() == "GET") {
+            auto& route = m_router.find_route(req.uri().raw_path);
+            route(std::make_shared<request>(req, res, *m_server, nullptr));
+        } else if (req.method() == "POST") {
+            log_debug("receiving content body");
+            auto buf = std::make_shared<request::http2_content_buffer_type>();
+            req.on_data([this, buf, &req, &res](const uint8_t* data, std::size_t len) {
+                if (len == 0) {
+                    log_debug("received all content data");
+                    // received all content, route the request now
+                    auto& route = m_router.find_route(req.uri().raw_path);
+                    route(std::make_shared<request>(req, res, *m_server, buf));
+                } else {
+                    log_debug("received content chunk of " << len << " bytes");
+                    // resize the buffer if needed
+                    if (buf->capacity() - buf->size() < len) {
+                        buf->reserve(buf->capacity() + len + 1024);
                     }
-                });
-            } else {
-                m_metric_not_impl->increment();
-                request r(req, res, *m_server, nullptr);
-                r.send_error_response(501);
-            }
-        });
+                    std::copy(data, data + len, std::back_inserter(*buf));
+                }
+            });
+        } else {
+            m_metric_not_impl->increment();
+            request r(req, res, *m_server, nullptr);
+            r.send_error_response(501);
+        }
+    });
     // Check for SSL
     if (options::opts.count("server.http2.tls")) {
         run_http2_tls_server();

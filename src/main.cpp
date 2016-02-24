@@ -5,10 +5,10 @@
  * Author: Andreas Pohl
  */
 
-#include "server.h"
-#include "server_impl.h"
 #include "log.h"
 #include "options.h"
+#include "server.h"
+#include "server_impl.h"
 
 void sig_handler(petrel::server& s, const petrel::bs::error_code& ec, int signal_number) {
     if (!ec) {
@@ -38,7 +38,6 @@ int main(int argc, const char** argv) {
         return 0;
     }
 
-
     petrel::log::init(petrel::options::opts.count("log.syslog"), petrel::options::opts["log.level"].as<int>());
 
     try {
@@ -48,7 +47,7 @@ int main(int argc, const char** argv) {
         signals.async_wait(std::bind(sig_handler, std::ref(s), std::placeholders::_1, std::placeholders::_2));
         s.impl()->init();
         s.impl()->start();
-        iosvc.run(); // wait for a signal to stop
+        iosvc.run();  // wait for a signal to stop
         s.impl()->join();
     } catch (std::exception& e) {
         set_log_tag("main");

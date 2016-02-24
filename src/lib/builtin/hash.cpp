@@ -7,14 +7,14 @@
 
 #include "hash.h"
 
-#include <memory>
-#include <vector>
 #include <array>
-#include <functional>
-#include <sstream>
-#include <iomanip>
 #include <boost/utility/string_ref.hpp>
+#include <functional>
+#include <iomanip>
+#include <memory>
 #include <openssl/evp.h>
+#include <sstream>
+#include <vector>
 
 namespace petrel {
 namespace lib {
@@ -56,7 +56,7 @@ void evp_pushhash(lua_State* L, evp_hash_type& h, std::uint32_t size) {
 
 int hash::md5(lua_State* L) {
     boost::string_ref str(luaL_checkstring(L, 1));
-    const EVP_MD *md = EVP_md5();
+    const EVP_MD* md = EVP_md5();
     if (nullptr == md) {
         luaL_error(L, "failed to get sha1 md");
     }
@@ -67,7 +67,7 @@ int hash::md5(lua_State* L) {
 
 int hash::sha1(lua_State* L) {
     boost::string_ref str(luaL_checkstring(L, 1));
-    const EVP_MD *md = EVP_sha1();
+    const EVP_MD* md = EVP_sha1();
     if (nullptr == md) {
         luaL_error(L, "failed to get sha1 md");
     }

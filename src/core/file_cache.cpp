@@ -7,14 +7,13 @@
 
 #include "file_cache.h"
 
-#include <fstream>
-#include <chrono>
 #include <boost/filesystem.hpp>
+#include <chrono>
+#include <fstream>
 
 using namespace boost::filesystem;
 
 namespace petrel {
-
 file_cache::file::file(const std::string& name, bool read_from_disk) {
     path p(name);
     if (exists(p)) {

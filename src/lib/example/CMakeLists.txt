@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 find_package(PkgConfig)
 pkg_check_modules(PETREL petrel REQUIRED)
+find_package(Boost 1.59.0 REQUIRED)
 
 get_property(LIB64 GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS)
 if(LIB64 AND (CMAKE_SYSTEM_NAME STREQUAL Linux))
@@ -24,6 +25,7 @@ set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++1y")
 
 include_directories(${PETREL_INCLUDE_DIRS})
+include_directories(${Boost_INCLUDE_DIRS})
 
 aux_source_directory(. SOURCES)
 

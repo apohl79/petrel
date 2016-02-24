@@ -8,15 +8,14 @@
 #ifndef LIB_BASE64_H
 #define LIB_BASE64_H
 
-#include "lua_engine.h"
-#include "library.h"
+#include "library_builtin.h"
 
 namespace petrel {
 namespace lib {
 
 class base64 : public library {
   public:
-    base64(lib_context* ctx) : library(ctx) {}
+    explicit base64(lib_context* ctx) : library(ctx) {}
 
     /// Encode a string to base64
     static int encode(lua_State* L);

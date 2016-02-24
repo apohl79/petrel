@@ -15,16 +15,24 @@ resolver_cache::resolver_cache() {
     log_info("using DNS cache TTL of " << m_ttl << " minutes");
 }
 
-template<>
-resolver_cache::tcp_cache& resolver_cache::get_cache<resolver_cache::tcp>() { return m_tcp_cache; }
+template <>
+resolver_cache::tcp_cache& resolver_cache::get_cache<resolver_cache::tcp>() {
+    return m_tcp_cache;
+}
 
-template<>
-resolver_cache::udp_cache& resolver_cache::get_cache<resolver_cache::udp>() { return m_udp_cache; }
+template <>
+resolver_cache::udp_cache& resolver_cache::get_cache<resolver_cache::udp>() {
+    return m_udp_cache;
+}
 
-template<>
-std::mutex& resolver_cache::get_cache_mtx<resolver_cache::tcp>() { return m_tcp_cache_mtx; }
+template <>
+std::mutex& resolver_cache::get_cache_mtx<resolver_cache::tcp>() {
+    return m_tcp_cache_mtx;
+}
 
-template<>
-std::mutex& resolver_cache::get_cache_mtx<resolver_cache::udp>() { return m_udp_cache_mtx; }
+template <>
+std::mutex& resolver_cache::get_cache_mtx<resolver_cache::udp>() {
+    return m_udp_cache_mtx;
+}
 
 }  // petrel

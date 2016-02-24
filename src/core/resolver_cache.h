@@ -8,17 +8,17 @@
 #ifndef RESOLVER_CACHE_H
 #define RESOLVER_CACHE_H
 
+#include <chrono>
+#include <memory>
+#include <mutex>
+#include <string>
 #include <unordered_map>
 #include <vector>
-#include <memory>
-#include <string>
-#include <chrono>
-#include <mutex>
 
 #include <boost/asio.hpp>
 
-#include <petrel/fiber/yield.hpp>
 #include <petrel/core/log.h>
+#include <petrel/fiber/yield.hpp>
 
 namespace petrel {
 
@@ -28,7 +28,7 @@ class resolver_cache {
     set_log_tag_default_priority("resolver_cache");
 
     /// Cache entry
-    template<typename entry_type>
+    template <typename entry_type>
     struct entry_t {
         std::chrono::system_clock::time_point expires;
         std::vector<entry_type> entries;

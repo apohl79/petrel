@@ -8,22 +8,22 @@
 #ifndef LUA_ENGINE_H
 #define LUA_ENGINE_H
 
-#include <string>
-#include <vector>
-#include <thread>
 #include <atomic>
-#include <mutex>
 #include <initializer_list>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
 
 #include <boost/core/noncopyable.hpp>
 
+#include <lauxlib.h>
 #include <lua.h>
 #include <lualib.h>
-#include <lauxlib.h>
 
 #include "log.h"
-#include "request.h"
 #include "metrics/counter.h"
+#include "request.h"
 
 namespace petrel {
 
@@ -122,7 +122,6 @@ class lua_engine : boost::noncopyable {
     metrics::counter::pointer m_states_counter;
     metrics::counter::pointer m_statebuffer_counter;
     std::thread m_states_watcher;
-
 
     /// Termination flag
     std::atomic_bool m_stop{false};

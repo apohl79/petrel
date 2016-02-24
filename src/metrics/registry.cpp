@@ -6,12 +6,12 @@
  */
 
 #include "registry.h"
+#include "fiber_sched_algorithm.h"
 #include "options.h"
 #include "resolver_cache.h"
-#include "fiber_sched_algorithm.h"
 
-#include <ostream>
 #include <ctime>
+#include <ostream>
 
 #include <boost/fiber/all.hpp>
 #include <petrel/fiber/yield.hpp>
@@ -70,7 +70,7 @@ void registry::run() {
     if (m_log_interval > 0) {
         bf::fiber([this] {
             std::string prefix = "m:";
-            while(!m_stop) {
+            while (!m_stop) {
                 boost::this_fiber::sleep_for(std::chrono::seconds(m_log_interval));
                 log_info("----- metrics -----");
                 for (auto metric : m_metrics) {
@@ -93,8 +93,8 @@ void registry::run() {
                 try {
                     // connecting carbon
                     bai::tcp::socket sock(m_iosvc);
-                    auto ep_iter = m_resolver.async_resolve<resolver_cache::tcp>(
-                        m_iosvc, m_graphite_host, m_graphite_port, bfa::yield);
+                    auto ep_iter = m_resolver.async_resolve<resolver_cache::tcp>(m_iosvc, m_graphite_host,
+                                                                                 m_graphite_port, bfa::yield);
                     ba::async_connect(sock, ep_iter, bfa::yield);
                     // send each metric
                     ba::streambuf buf;

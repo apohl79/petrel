@@ -13,8 +13,8 @@
 #include <chrono>
 
 #include <boost/asio.hpp>
-#include <boost/assert.hpp>
 #include <boost/asio/steady_timer.hpp>
+#include <boost/assert.hpp>
 #include <boost/config.hpp>
 
 #include <boost/fiber/context.hpp>
@@ -34,7 +34,6 @@ class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
     boost::asio::io_service& io_svc_;
     boost::asio::steady_timer suspend_timer_;
     boost::asio::steady_timer keepalive_timer_;
-    std::chrono::steady_clock::duration keepalive_interval_;
     boost::fibers::scheduler::ready_queue_t ready_queue_{};
 
 #ifndef __clang__
@@ -44,7 +43,8 @@ class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
 #endif
 
   public:
-    fiber_sched_algorithm(boost::asio::io_service& io_svc) : io_svc_(io_svc), suspend_timer_(io_svc_), keepalive_timer_(io_svc_) {
+    explicit fiber_sched_algorithm(boost::asio::io_service& io_svc)
+        : io_svc_(io_svc), suspend_timer_(io_svc_), keepalive_timer_(io_svc_) {
         on_empty_io_service();
     }
 

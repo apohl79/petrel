@@ -14,9 +14,9 @@
 #include <boost/asio.hpp>
 #include <boost/fiber/all.hpp>
 
-#include "log.h"
 #include "boost/http/buffered_socket.hpp"
 #include "boost/http/status_code.hpp"
+#include "log.h"
 
 namespace petrel {
 
@@ -39,7 +39,7 @@ class session : public std::enable_shared_from_this<session> {
         response_t(const response_t&) = delete;
         response_t(response_t&&) = default;
         response_t() : status(200) {}
-        response_t(std::uint_fast16_t s) : status(s) {}
+        explicit response_t(std::uint_fast16_t s) : status(s) {}
         response_t& operator=(const response_t&) = delete;
         response_t& operator=(response_t&&) = default;
         std::uint_fast16_t status;
@@ -52,7 +52,7 @@ class session : public std::enable_shared_from_this<session> {
       public:
         using pointer = std::shared_ptr<request>;
 
-        request(session::pointer s) : m_session(s), m_res_future(m_res_promise.get_future()) {}
+        explicit request(session::pointer s) : m_session(s), m_res_future(m_res_promise.get_future()) {}
         request(const request&) = delete;
         request(request&&) = default;
         request& operator=(const request&) = delete;
@@ -100,9 +100,7 @@ class session : public std::enable_shared_from_this<session> {
     virtual ~session();
 
     /// Return the sessions underlying socket object.
-    bai::tcp::socket& socket() {
-        return m_socket.next_layer();
-    }
+    bai::tcp::socket& socket() { return m_socket.next_layer(); }
 
     /// Return the server
     server& get_server();

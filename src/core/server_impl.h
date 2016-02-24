@@ -8,26 +8,26 @@
 #ifndef SERVER_IMPL_H
 #define SERVER_IMPL_H
 
+#include <atomic>
 #include <memory>
 #include <string>
-#include <vector>
 #include <thread>
-#include <atomic>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/core/noncopyable.hpp>
 #include <boost/program_options.hpp>
 #include <nghttp2/asio_http2_server.h>
 
+#include "boost/http/buffered_socket.hpp"
+#include "file_cache.h"
 #include "lua_engine.h"
+#include "metrics/meter.h"
+#include "metrics/registry.h"
+#include "metrics/timer.h"
 #include "resolver_cache.h"
 #include "router.h"
 #include "worker.h"
-#include "metrics/registry.h"
-#include "metrics/meter.h"
-#include "metrics/timer.h"
-#include "file_cache.h"
-#include "boost/http/buffered_socket.hpp"
 
 namespace petrel {
 
@@ -37,12 +37,12 @@ namespace ba = boost::asio;
 namespace bs = boost::system;
 
 /// The server class
-class server_impl: boost::noncopyable {
+class server_impl : boost::noncopyable {
   public:
     set_log_tag_default_priority("server");
 
     /// Ctor.
-    server_impl(server* srv);
+    explicit server_impl(server* srv);
 
     /// Start the server and return.
     void start();
@@ -121,6 +121,6 @@ class server_impl: boost::noncopyable {
                                                        const std::string& req_path);
 };
 
-} // petrel
+}  // petrel
 
 #endif  // SERVER_IMPL_H

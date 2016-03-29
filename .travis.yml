@@ -68,7 +68,7 @@ before_script:
   - export CC=gcc-4.9; export CXX=g++-4.9
   - export BUILD_ROOT=$(pwd)
   - cd $HOME
-  - if [ ! -d boost ]; then export BOOST_CLONE=1; git clone --recursive https://github.com/boostorg/boost.git; fi
+  - if [ ! -d boost ]; then export BOOST_CLONE=1; git clone --recursive https://github.com/boostorg/boost.git; else export BOOST_CLONE=0; fi
   - pushd "boost"
   - if [ $BOOST_CLONE -ne 1 ]; then git pull; fi
   - pushd "libs"

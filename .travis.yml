@@ -5,9 +5,7 @@ notifications:
   on_success: change
   on_failure: always
   on_start: false
-cache:
-  directories:
-    - $HOME/boost
+cache: ccache
 
 matrix:
   include:
@@ -68,9 +66,8 @@ before_script:
   - export CC=gcc-4.9; export CXX=g++-4.9
   - export BUILD_ROOT=$(pwd)
   - cd $HOME
-  - if [ ! -d boost ]; then export BOOST_CLONE=1; git clone --recursive https://github.com/boostorg/boost.git; else export BOOST_CLONE=0; fi
+  - git clone --recursive https://github.com/boostorg/boost.git
   - pushd "boost"
-  - if [ $BOOST_CLONE -ne 1 ]; then git pull; fi
   - pushd "libs"
   - if [ ! -d fiber ]; then git clone https://github.com/olk/boost-fiber.git fiber; else cd fiber; git pull; cd ..; fi
   - popd

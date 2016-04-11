@@ -3,13 +3,13 @@
 What is Petrel?
 ---------------
 
-- Open source (licensed under MIT, see [License](http://apohl79.github.io/petrel/docs/build/html/license.html))
-- A framework for rapid development of micro/web services
-- A web server with HTTP/1 and HTTP/2 support
+- A web server with HTTP/2 and HTTP/1.1 support
+- A framework for rapid development of micro/web services in LUA and C++
 - Combines fibers with LUA (no callbacks, just write your “blocking” code and don’t care about threads or non-blocking IO)
 - Provides a C++ library interface to implement performance critical code
-- Provides a LUA framework to implement business logic
+- Provides a LUA framework to implement the business logic
 - Easy to extend
+- Open source (licensed under MIT, see [License](http://apohl79.github.io/petrel/docs/build/html/license.html))
 
 Read more:
 
@@ -17,3 +17,4 @@ Read more:
 - [Getting Started](http://apohl79.github.io/petrel/docs/build/html/getting_started.html)
 - [Installation Guide](http://apohl79.github.io/petrel/docs/build/html/installation_guide.html)
 - [Documentation](http://apohl79.github.io/petrel/docs/build/html/index.html)
+- [Contributing](http://apohl79.github.io/petrel/docs/build/html/devel_guide.html)

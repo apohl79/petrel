@@ -66,14 +66,15 @@ before_script:
   - export CC=gcc-4.9; export CXX=g++-4.9
   - export BUILD_ROOT=$(pwd)
   - cd $HOME
-  - git clone --recursive https://github.com/boostorg/boost.git
-  - pushd "boost"
+  #- git clone --recursive https://github.com/boostorg/boost.git
+  - curl http://netcologne.dl.sourceforge.net/project/boost/boost/1.61.0.beta.1/boost_1_61_0_b1.tar.bz2 | tar xj
+  - pushd "boost_1_61_0_b1"
   - pushd "libs"
   - if [ ! -d fiber ]; then git clone https://github.com/olk/boost-fiber.git fiber; else cd fiber; git pull; cd ..; fi
   - popd
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC=$(which $CXX); fi
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test; fi
+  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost_head --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic; fi
   - ./b2 -q -d0 --user-config=user-config.jam headers
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
   - popd

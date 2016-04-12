@@ -10,10 +10,11 @@ find_package(Boost 1.59.0 COMPONENTS
   unit_test_framework
   REQUIRED)
 find_package(OpenSSL REQUIRED)
-find_package(LUA REQUIRED)
+#find_package(LUA REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(NGHTTP2 libnghttp2)
 pkg_check_modules(NGHTTP2_ASIO libnghttp2_asio)
+pkg_check_modules(LUA REQUIRED luajit)
 
 # GCC colors
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
@@ -27,6 +28,11 @@ if(VALGRIND)
   set(COMP_FLAGS "${COMP_FLAGS} -DBOOST_USE_VALGRIND=1")
 endif()
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_EXE_LINKER_FLAGS "-pagezero_size 10000 -image_base 100000000")
+    set(CMAKE_MACOSX_RPATH 1)
+endif()
+
 set(CMAKE_C_FLAGS "${COMP_FLAGS} -std=c11")
 set(CMAKE_CXX_FLAGS "${COMP_FLAGS} -std=c++11")
 
@@ -38,7 +44,7 @@ include_directories(../src/metrics)
 include_directories(../src/boost/http/include)
 include_directories(${Boost_INCLUDE_DIRS})
 include_directories(${OPENSSL_INCLUDE_DIR})
-include_directories(${LUA_INCLUDE_DIR})
+include_directories(${LUA_INCLUDE_DIRS})
 include_directories(${NGHTTP2_INCLUDE_DIRS})
 
 link_directories(${Boost_LIBRARY_DIRS})
@@ -55,7 +61,7 @@ macro(add_test_target target)
     ${NGHTTP2_LIBRARIES}
     ${NGHTTP2_ASIO_LIBRARIES}
     ${LUA_LIBRARIES}
-    pthread)
+    pthread m)
   add_test(${target} ${target})
 endmacro()
 

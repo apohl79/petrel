@@ -129,7 +129,7 @@ std::ostream& operator<<(std::ostream& os, const log_priority& priority) {
 }
 
 std::ostream& operator<<(std::ostream& os, const log_tag& tag) {
-    static std::size_t width = 14;
+    static std::size_t width = 17;
     if (tag.str.length() > width) {
         width = tag.str.length();
     }

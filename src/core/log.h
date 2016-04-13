@@ -14,6 +14,8 @@
 #include <ostream>
 #include <syslog.h>
 
+#include <petrel/core/branch.h>
+
 #include <boost/utility/string_ref.hpp>
 
 namespace petrel {
@@ -31,8 +33,8 @@ enum class log_priority : int {
 };
 
 struct log_tag {
-    log_tag(const char* s) : str(s) {}
-    log_tag(const std::string& s) : str(s) {}
+    explicit log_tag(const char* s) : str(s) {}
+    explicit log_tag(const std::string& s) : str(s) {}
     log_tag& operator=(const log_tag& t) {
         str = t.str;
         return *this;
@@ -135,7 +137,7 @@ class log : public std::basic_streambuf<char, std::char_traits<char> > {
     set_log_priority(::petrel::log_priority::info)
 
 #define log_base(P, M)                                                                          \
-    if (P <= ::petrel::log::m_filter_priority) {                                                \
+    if (unlikely(P <= ::petrel::log::m_filter_priority)) {                                      \
         std::clog << ::petrel::log_tag(__petrel_log_tag) << ::petrel::log::to_priority(P) << M; \
     }
 #define log_default(M) log_base(__petrel_log_prio, M << std::endl)

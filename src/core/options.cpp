@@ -27,8 +27,6 @@ bool options::parse(int argc, const char** argv) {
         ;
     bpo::options_description desc_srv("Server options");
     desc_srv.add_options()
-        ("server.http2",
-           "Run a HTTP2 server")
         ("server.workers,w", bpo::value<int>()->default_value(1),
            "Number of worker threads. By setting this to 0, 1 worker per CPU gets created.")
         ("server.listen,l", bpo::value<std::string>()->default_value(""),
@@ -37,12 +35,14 @@ bool options::parse(int argc, const char** argv) {
            "Server port for TCP")
         ("server.backlog,b", bpo::value<int>()->default_value(0),
            "Listen backlog. Set this to 0 for max.")
-        ("server.http2.tls",
-           "Enable SSL/TLS support for HTTP2.")
-        ("server.http2.key-file", bpo::value<std::string>(),
+        ("server.tls",
+           "Enable SSL/TLS support for HTTP/2.")
+        ("server.key-file", bpo::value<std::string>(),
            "SSL/TLS private key file")
-        ("server.http2.crt-file", bpo::value<std::string>(),
+        ("server.crt-file", bpo::value<std::string>(),
            "SSL/TLS certificate file")
+        ("server.http1",
+           "Run an HTTP/1.1 server (No SSL/TLS support)")
         ("server.dns-cache-ttl", bpo::value<int>()->default_value(5),
            "DNS cache TTL in minutes")
         ;

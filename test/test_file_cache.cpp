@@ -5,19 +5,19 @@
  * Author: Andreas Pohl
  */
 
+#include "builtin/http_client.h"
+#include "fiber_sched_algorithm.h"
 #include "file_cache.h"
 #include "log.h"
+#include "make_unique.h"
+#include "options.h"
 #include "server.h"
 #include "server_impl.h"
-#include "options.h"
-#include "fiber_sched_algorithm.h"
-#include "make_unique.h"
-#include "builtin/http_client.h"
 
-#include <fstream>
-#include <boost/filesystem.hpp>
 #include <boost/asio.hpp>
 #include <boost/fiber/all.hpp>
+#include <boost/filesystem.hpp>
+#include <fstream>
 
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -29,7 +29,7 @@ using namespace boost::fibers;
 using namespace boost::filesystem;
 
 BOOST_AUTO_TEST_CASE(test_cache) {
-    //log::init();
+    // log::init();
     set_log_tag("test");
 
     create_directories("/tmp/petrel-test/1/2");
@@ -102,7 +102,7 @@ BOOST_AUTO_TEST_CASE(test_cache) {
 }
 
 BOOST_AUTO_TEST_CASE(test_server) {
-    //log::init();
+    // log::init();
     set_log_tag("test");
 
     create_directories("/tmp/petrel-test");
@@ -112,12 +112,12 @@ BOOST_AUTO_TEST_CASE(test_server) {
     of << "test";
     of.close();
 
-    const char* argv[] = {"test", "--server.listen=localhost", "--server.port=18588", "--lua.root=.",
-                          "--lua.statebuffer=5"};
+    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18588", "--server.http1",
+                          "--lua.root=.", "--lua.statebuffer=5"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
     server s;
-    auto& se = s.get_lua_engine();
-    se.add_lua_code_to_buffer(
+    auto& se = s.get_lua_engine().state_manager();
+    se.add_lua_code(
         "function bootstrap() "
         "  petrel.add_directory_route(\"/files/\", \"/tmp/petrel-test\") "
         "end ");
@@ -131,14 +131,14 @@ BOOST_AUTO_TEST_CASE(test_server) {
     io_service iosvc;
     io_service::work work(iosvc);
 
-    auto& ce = s2.get_lua_engine();
-    ce.add_lua_code_to_buffer(
+    auto& ce = s2.get_lua_engine().state_manager();
+    ce.add_lua_code(
         "function test() "
         "  h = http_client() "
         "  h:connect(\"localhost\", \"18588\") "
         "  return h:get(\"/files/test\") "
         "end ");
-    auto Lex = ce.create_lua_state();
+    auto Lex = ce.create_state();
     log_info("state created");
 
     std::thread([&] {
@@ -156,7 +156,7 @@ BOOST_AUTO_TEST_CASE(test_server) {
             } else {
                 // check result
                 BOOST_CHECK(lua_isstring(Lex.L, -1));
-                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                BOOST_CHECK(lua_isnumber(Lex.L, -2));
                 std::size_t content_len;
                 const char* content = lua_tolstring(Lex.L, -1, &content_len);
                 BOOST_CHECK(content_len == 4);
@@ -174,7 +174,7 @@ BOOST_AUTO_TEST_CASE(test_server) {
         iosvc.run();
     }).join();
 
-    ce.destroy_lua_state(Lex);
+    ce.destroy_state(Lex);
 
     s.impl()->stop();
     s.impl()->join();

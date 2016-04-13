@@ -6,20 +6,20 @@
  */
 
 #include "petrel.h"
-#include "server.h"
-#include "server_impl.h"
 #include "log.h"
 #include "make_unique.h"
+#include "server.h"
+#include "server_impl.h"
 
-#include <dlfcn.h>
-#include <string>
-#include <sstream>
-#include <vector>
-#include <memory>
 #include <algorithm>
-#include <boost/utility/string_ref.hpp>
-#include <boost/filesystem.hpp>
 #include <boost/fiber/all.hpp>
+#include <boost/filesystem.hpp>
+#include <boost/utility/string_ref.hpp>
+#include <dlfcn.h>
+#include <memory>
+#include <sstream>
+#include <string>
+#include <vector>
 
 namespace petrel {
 namespace lib {
@@ -64,7 +64,7 @@ int petrel::add_route(lua_State* L) {
     std::string path = luaL_checkstring(L, 1);
     std::string func = luaL_checkstring(L, 2);
     context(L).server().impl()->add_route(path, func);
-    return 0; // no results
+    return 0;  // no results
 }
 
 int petrel::add_directory_route(lua_State* L) {
@@ -77,7 +77,7 @@ int petrel::add_directory_route(lua_State* L) {
         dir += '/';
     }
     context(L).server().impl()->add_directory_route(path, dir);
-    return 0; // no results
+    return 0;  // no results
 }
 
 int petrel::lib_search_path(lua_State* L) {
@@ -157,14 +157,14 @@ int petrel::load_lib(lua_State* L) {
             continue;
         }
 
-        lua_engine::register_lib(name_func(), open_func, init_func, load_func, unload_func);
+        lua_state_manager::register_lib(name_func(), open_func, init_func, load_func, unload_func);
 
         return 0;
     }
 
     log_err("error loading " << lib << ": no library found");
 
-    return 0; // no results
+    return 0;  // no results
 }
 
 int petrel::sleep_nanos(lua_State* L) {

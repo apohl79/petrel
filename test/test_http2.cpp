@@ -5,11 +5,11 @@
  * Author: Andreas Pohl
  */
 
+#include "builtin/http2_client.h"
+#include "fiber_sched_algorithm.h"
+#include "options.h"
 #include "server.h"
 #include "server_impl.h"
-#include "options.h"
-#include "fiber_sched_algorithm.h"
-#include "builtin/http2_client.h"
 
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -24,16 +24,16 @@ using namespace boost::fibers;
 
 BOOST_AUTO_TEST_CASE(test_http2) {
     // options
-    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18586",
-                          "--lua.root=.", "--lua.statebuffer=5",       "--server.http2"};
+    const char* argv[] = {"test", "--server.listen=localhost", "--server.port=18586", "--lua.root=.",
+                          "--lua.statebuffer=5"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
 
-    //log::init();
+    // log::init();
 
     // create server and push some lua code
     server s;
-    auto& se = s.get_lua_engine();
-    se.add_lua_code_to_buffer(
+    auto& se = s.get_lua_engine().state_manager();
+    se.add_lua_code(
         "function bootstrap() "
         "  petrel.add_route(\"/\", \"handler\") "
         "end "
@@ -55,14 +55,14 @@ BOOST_AUTO_TEST_CASE(test_http2) {
     io_service iosvc;
     io_service::work work(iosvc);
 
-    auto& ce = s2.get_lua_engine();
-    ce.add_lua_code_to_buffer(
+    auto& ce = s2.get_lua_engine().state_manager();
+    ce.add_lua_code(
         "function test() "
         "  h = http2_client() "
         "  h:connect(\"localhost\", \"18586\") "
         "  return h:get(\"/\") "
         "end");
-    auto Lex = ce.create_lua_state();
+    auto Lex = ce.create_state();
     log_info("state created");
 
     std::thread([&] {
@@ -80,7 +80,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
             } else {
                 // check result
                 BOOST_CHECK(lua_isstring(Lex.L, -1));
-                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                BOOST_CHECK(lua_isnumber(Lex.L, -2));
                 std::string content(lua_tostring(Lex.L, -1));
                 int status = lua_tointeger(Lex.L, -2);
                 BOOST_CHECK_MESSAGE(content == "test", "'test' expected: content was '" << content << "'");
@@ -94,7 +94,7 @@ BOOST_AUTO_TEST_CASE(test_http2) {
         iosvc.run();
     }).join();
 
-    ce.destroy_lua_state(Lex);
+    ce.destroy_state(Lex);
 
     s.impl()->stop();
     s.impl()->join();

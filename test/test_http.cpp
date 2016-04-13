@@ -5,12 +5,12 @@
  * Author: Andreas Pohl
  */
 
-#include "server.h"
-#include "server_impl.h"
-#include "options.h"
+#include "builtin/http_client.h"
 #include "fiber_sched_algorithm.h"
 #include "make_unique.h"
-#include "builtin/http_client.h"
+#include "options.h"
+#include "server.h"
+#include "server_impl.h"
 
 #define BOOST_TEST_MAIN
 #include <boost/test/unit_test.hpp>
@@ -23,19 +23,18 @@ using namespace petrel::lib;
 using namespace boost::asio;
 using namespace boost::fibers;
 
-
 BOOST_AUTO_TEST_CASE(test_http) {
     // options
-    const char* argv[] = {"test", "--server.listen=localhost", "--server.port=18585", "--lua.root=.",
-                          "--lua.statebuffer=5"};
+    const char* argv[] = {"test",         "--server.listen=localhost", "--server.port=18585", "--server.http1",
+                          "--lua.root=.", "--lua.statebuffer=5"};
     options::parse(sizeof(argv) / sizeof(const char*), argv);
 
-    //log::init();
+    // log::init();
 
     // create server and push some lua code
     server s;
-    auto& se = s.get_lua_engine();
-    se.add_lua_code_to_buffer(
+    auto& se = s.get_lua_engine().state_manager();
+    se.add_lua_code(
         "function bootstrap() "
         "  petrel.add_route(\"/\", \"handler\") "
         "  petrel.add_route(\"/post/\", \"handler_post\") "
@@ -62,8 +61,8 @@ BOOST_AUTO_TEST_CASE(test_http) {
     io_service iosvc;
     io_service::work work(iosvc);
 
-    auto& ce = s2.get_lua_engine();
-    ce.add_lua_code_to_buffer(
+    auto& ce = s2.get_lua_engine().state_manager();
+    ce.add_lua_code(
         "function test() "
         "  h = http_client() "
         "  h:connect(\"localhost\", \"18585\") "
@@ -74,7 +73,7 @@ BOOST_AUTO_TEST_CASE(test_http) {
         "  h:connect(\"localhost\", \"18585\") "
         "  return h:post(\"/post/\", \"post_data\") "
         "end ");
-    auto Lex = ce.create_lua_state();
+    auto Lex = ce.create_state();
     log_info("state created");
 
     std::thread([&] {
@@ -92,7 +91,7 @@ BOOST_AUTO_TEST_CASE(test_http) {
             } else {
                 // check result
                 BOOST_CHECK(lua_isstring(Lex.L, -1));
-                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                BOOST_CHECK(lua_isnumber(Lex.L, -2));
                 std::size_t content_len;
                 const char* content = lua_tolstring(Lex.L, -1, &content_len);
                 BOOST_CHECK(content_len == 4);
@@ -111,7 +110,7 @@ BOOST_AUTO_TEST_CASE(test_http) {
             } else {
                 // check result
                 BOOST_CHECK(lua_isstring(Lex.L, -1));
-                BOOST_CHECK(lua_isinteger(Lex.L, -2));
+                BOOST_CHECK(lua_isnumber(Lex.L, -2));
                 std::string expected;
                 for (int i = 0; i < 10000; i++) {
                     expected += "post_data";
@@ -134,7 +133,7 @@ BOOST_AUTO_TEST_CASE(test_http) {
         iosvc.run();
     }).join();
 
-    ce.destroy_lua_state(Lex);
+    ce.destroy_state(Lex);
 
     s.impl()->stop();
     s.impl()->join();

@@ -5,8 +5,9 @@
  * Author: Andreas Pohl
  */
 
-#include "lua_engine.h"
 #include "builtin/hash.h"
+#include "lua_state_manager.h"
+#include "lua_utils.h"
 
 #include <boost/utility/string_ref.hpp>
 
@@ -16,13 +17,12 @@
 using namespace petrel;
 using namespace petrel::lib;
 
-lua_engine g_le;
-
 BOOST_AUTO_TEST_CASE(test_encode) {
-    auto Lex = g_le.create_lua_state();
+    lua_state_manager lsm;
+    auto Lex = lsm.create_state();
     // create test function
     const std::string lua_code = "function test(str) return base64.encode(str) end";
-    lua_engine::load_code_from_string(Lex.L, lua_code.c_str());
+    lua_utils::load_code_from_string(Lex.L, lua_code.c_str());
     // load test function
     lua_getglobal(Lex.L, "test");
     BOOST_CHECK(lua_isfunction(Lex.L, -1));
@@ -34,14 +34,15 @@ BOOST_AUTO_TEST_CASE(test_encode) {
     BOOST_CHECK(lua_isstring(Lex.L, -1));
     boost::string_ref ret(lua_tostring(Lex.L, -1));
     BOOST_CHECK(ret == "cGV0cmVsIHJveHggOi0p");
-    g_le.destroy_lua_state(Lex);
+    lsm.destroy_state(Lex);
 }
 
 BOOST_AUTO_TEST_CASE(test_decode) {
-    auto Lex = g_le.create_lua_state();
+    lua_state_manager lsm;
+    auto Lex = lsm.create_state();
     // create test function
     const std::string lua_code = "function test(str) return base64.decode(str) end";
-    lua_engine::load_code_from_string(Lex.L, lua_code.c_str());
+    lua_utils::load_code_from_string(Lex.L, lua_code.c_str());
     // load test function
     lua_getglobal(Lex.L, "test");
     BOOST_CHECK(lua_isfunction(Lex.L, -1));
@@ -53,5 +54,5 @@ BOOST_AUTO_TEST_CASE(test_decode) {
     BOOST_CHECK(lua_isstring(Lex.L, -1));
     boost::string_ref ret(lua_tostring(Lex.L, -1));
     BOOST_CHECK(ret == "petrel roxx :-)");
-    g_le.destroy_lua_state(Lex);
+    lsm.destroy_state(Lex);
 }

@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <lua.h>
+#include <lua.hpp>
 
 namespace petrel {
 
@@ -123,10 +123,15 @@ class library {
     }                                                                             \
     /* Open the library */                                                        \
     int lib_open(lua_State* L) noexcept {                                         \
-        luaL_checkversion(L);                                                     \
+        /*luaL_checkversion(L);*/                                                 \
         if (library_functions.size() > 0) {                                       \
             lua_createtable(L, 0, library_functions.size() - 1);                  \
-            luaL_setfuncs(L, &library_functions[0], 0);                           \
+            int newtab = lua_gettop(L);                                           \
+            /*luaL_setfuncs(L, &library_functions[0], 0);*/                       \
+            for (auto& f : library_functions) {                                   \
+                lua_pushcfunction(L, f.func);                                     \
+                lua_setfield(L, newtab, f.name);                                  \
+            }                                                                     \
         }                                                                         \
         return 1;                                                                 \
     }                                                                             \
@@ -134,12 +139,12 @@ class library {
     int lib_add_function(const char* name, lua_CFunction f) noexcept {            \
         if (nullptr != f) {                                                       \
             luaL_Reg reg = {name, f};                                             \
-            if (!library_functions.empty()) {                                     \
-                library_functions.pop_back();                                     \
-            }                                                                     \
+            /*if (!library_functions.empty()) {   */                              \
+            /*    library_functions.pop_back();   */                              \
+            /*}                                   */                              \
             library_functions.push_back(reg);                                     \
-            reg = {0, 0};                                                         \
-            library_functions.push_back(reg);                                     \
+            /*reg = {0, 0};                     */                                \
+            /*library_functions.push_back(reg); */                                \
         }                                                                         \
         return 0;                                                                 \
     }                                                                             \

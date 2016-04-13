@@ -7,12 +7,12 @@
 
 #include <unordered_map>
 
+#include "make_unique.h"
 #include "metric.h"
-#include "metrics/registry.h"
 #include "metrics/counter.h"
 #include "metrics/meter.h"
+#include "metrics/registry.h"
 #include "server.h"
-#include "make_unique.h"
 
 namespace petrel {
 namespace lib {
@@ -124,8 +124,8 @@ int metric::finish_duration(lua_State* L) {
 
 int metric::increment(lua_State* L) {
     int val = 1;
-    if (lua_isinteger(L, 1)) {
-       val = lua_tointeger(L, 1);
+    if (lua_isnumber(L, 1)) {
+        val = lua_tointeger(L, 1);
     }
     if (nullptr == m_metric) {
         luaL_error(L, "no metric assigned");
@@ -145,8 +145,8 @@ int metric::increment(lua_State* L) {
 
 int metric::decrement(lua_State* L) {
     int val = 1;
-    if (lua_isinteger(L, 1)) {
-       val = lua_tointeger(L, 1);
+    if (lua_isnumber(L, 1)) {
+        val = lua_tointeger(L, 1);
     }
     if (nullptr == m_metric) {
         luaL_error(L, "no metric assigned");

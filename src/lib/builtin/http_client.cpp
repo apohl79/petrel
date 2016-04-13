@@ -7,19 +7,19 @@
 
 #include "http_client.h"
 #include "log.h"
-#include "server.h"
 #include "resolver_cache.h"
+#include "server.h"
 
+#include <algorithm>
+#include <cstdlib>
+#include <cstring>
 #include <string>
 #include <vector>
-#include <algorithm>
-#include <cstring>
-#include <cstdlib>
 
-#include <boost/utility/string_ref.hpp>
-#include <boost/fiber/all.hpp>
-#include <boost/bind.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/bind.hpp>
+#include <boost/fiber/all.hpp>
+#include <boost/utility/string_ref.hpp>
 #include <petrel/fiber/yield.hpp>
 
 namespace petrel {
@@ -178,7 +178,7 @@ int http_client::send_recv(lua_State* L) {
                     }
                 }
                 luaL_Buffer lbuf;
-                luaL_buffinitsize(L, &lbuf, content_len);
+                luaL_buffinit(L, &lbuf);
                 std::for_each(ba::buffers_begin(m_res_buf.data()), ba::buffers_end(m_res_buf.data()),
                               [&lbuf](const char c) { luaL_addchar(&lbuf, c); });
                 luaL_pushresult(&lbuf);

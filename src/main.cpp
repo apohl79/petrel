@@ -10,6 +10,14 @@
 #include "server.h"
 #include "server_impl.h"
 
+#ifndef PETREL_VERSION
+#define PETREL_VERSION 0
+#endif
+
+#ifdef GOOGLE_PROFILER
+#include <gperftools/profiler.h>
+#endif
+
 void sig_handler(petrel::server& s, const petrel::bs::error_code& ec, int signal_number) {
     if (!ec) {
         set_log_tag("main");
@@ -40,6 +48,10 @@ int main(int argc, const char** argv) {
 
     petrel::log::init(petrel::options::opts.count("log.syslog"), petrel::options::opts["log.level"].as<int>());
 
+#ifdef GOOGLE_PROFILER
+    ProfilerStart("petrel.prof");
+#endif
+
     try {
         petrel::server s;
         petrel::ba::io_service iosvc;
@@ -54,6 +66,10 @@ int main(int argc, const char** argv) {
         log_emerg(e.what());
         return 1;
     }
+
+#ifdef GOOGLE_PROFILER
+    ProfilerStop();
+#endif
 
     return 0;
 }

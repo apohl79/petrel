@@ -38,9 +38,9 @@ namespace bs = boost::system;
 
 /// The server class
 class server_impl : boost::noncopyable {
-  public:
     set_log_tag_default_priority("server");
 
+  public:
     /// Ctor.
     explicit server_impl(server* srv);
 

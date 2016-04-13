@@ -8,9 +8,9 @@
 #include "http2_client.h"
 #include "make_unique.h"
 
-#include <sstream>
 #include <boost/asio.hpp>
 #include <boost/fiber/all.hpp>
+#include <sstream>
 
 namespace petrel {
 namespace lib {
@@ -20,7 +20,6 @@ ADD_LIB_METHOD(connect);
 ADD_LIB_METHOD(disconnect);
 ADD_LIB_METHOD(get);
 ADD_LIB_METHOD(read_timeout);
-ADD_LIB_METHOD(connect_timeout);
 DECLARE_LIB_BUILTIN_END();
 
 namespace bs = boost::system;
@@ -62,7 +61,6 @@ int http2_client::connect(lua_State* L) {
     } else {
         m_session = std::make_unique<http2::client::session>(io_service(), m_host, m_port);
     }
-    m_session->connect_timeout(m_connect_timeout);
     m_session->read_timeout(m_read_timeout);
     m_session->on_connect([&promise](ba::ip::tcp::resolver::iterator) { promise.set_value(bs::error_code()); });
     m_session->on_error([&promise](const bs::error_code& ec) { promise.set_value(ec); });
@@ -105,17 +103,16 @@ int http2_client::get(lua_State* L) {
     std::ostringstream content_strm;
     int status;
     auto req = m_session->submit(ec, "GET", url);
-    req->on_response(
-        [&promise, &content_strm, &status](const http2::client::response& res) {
-            status = res.status_code();
-            res.on_data([&promise, &content_strm](const uint8_t* data, std::size_t len) {
-                if (len == 0) {
-                    promise.set_value(bs::error_code());
-                } else {
-                    content_strm.write(reinterpret_cast<const char*>(data), len);
-                }
-            });
+    req->on_response([&promise, &content_strm, &status](const http2::client::response& res) {
+        status = res.status_code();
+        res.on_data([&promise, &content_strm](const uint8_t* data, std::size_t len) {
+            if (len == 0) {
+                promise.set_value(bs::error_code());
+            } else {
+                content_strm.write(reinterpret_cast<const char*>(data), len);
+            }
         });
+    });
 
     ec = future.get();
     if (ec) {
@@ -134,12 +131,6 @@ int http2_client::get(lua_State* L) {
 int http2_client::read_timeout(lua_State* L) {
     int t = luaL_checkinteger(L, 1);
     m_read_timeout = bp::millisec(t);
-    return 0;
-}
-
-int http2_client::connect_timeout(lua_State* L) {
-    int t = luaL_checkinteger(L, 1);
-    m_connect_timeout = bp::millisec(t);
     return 0;
 }
 

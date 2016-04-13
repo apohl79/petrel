@@ -23,13 +23,12 @@ namespace http2 = nghttp2::asio_http2;
 /// http2_client class
 class http2_client : public library {
   public:
-    explicit http2_client(lib_context* ctx) : library(ctx), m_read_timeout(0, 0, 5, 0), m_connect_timeout(0, 0, 5, 0) {}
+    explicit http2_client(lib_context* ctx) : library(ctx), m_read_timeout(0, 0, 5, 0) {}
 
     int connect(lua_State* L);
     int disconnect(lua_State* L);
     int get(lua_State* L);
     int read_timeout(lua_State* L);
-    int connect_timeout(lua_State* L);
 
   private:
     std::unique_ptr<http2::client::session> m_session;
@@ -39,7 +38,6 @@ class http2_client : public library {
     bool m_ssl_verify = true;
     std::unique_ptr<ba::ssl::context> m_tls;
     bp::time_duration m_read_timeout;
-    bp::time_duration m_connect_timeout;
     bool m_connected = false;
 
     inline void close() {

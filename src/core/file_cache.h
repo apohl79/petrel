@@ -17,9 +17,13 @@
 #include <unordered_set>
 #include <vector>
 
+#include <boost/asio.hpp>
+
 #include "log.h"
 
 namespace petrel {
+
+namespace ba = boost::asio;
 
 /// file_cache class
 /// The cache is loading and refreshing directories contents and
@@ -58,8 +62,19 @@ class file_cache : boost::noncopyable {
         bool m_good = false;
     };
 
-    file_cache(int refresh_time = 5);
+    explicit file_cache(int refresh_time = 5);
     ~file_cache();
+
+    /// Register an io service object. As we are running one io service per worker we can use post() to execute cache
+    /// updates in the context of each worker and maintain thread local caches that require no locks.
+    ///
+    /// @param iosvc The io service object to register
+    void register_io_service(ba::io_service* iosvc);
+
+    /// Unregister an io service object.
+    ///
+    /// @param iosvc The io service object to unregister
+    void unregister_io_service(ba::io_service* iosvc);
 
     /// Add a directory to the cache
     ///
@@ -86,12 +101,21 @@ class file_cache : boost::noncopyable {
   private:
     std::unordered_set<std::string> m_directories;
     std::mutex m_dir_mtx;
-    std::unordered_map<std::string, std::shared_ptr<file>> m_file_map;
+
+    using file_map_type = std::unordered_map<std::string, std::shared_ptr<file>>;
+
+    file_map_type m_file_map;
     std::mutex m_file_mtx;
+
+    static thread_local file_map_type* m_file_map_local;
+
     std::thread m_thread;
     bool m_stop = false;
 
+    std::vector<ba::io_service*> m_iosvcs;
+
     bool scan_directory(const std::string& name);
+    std::shared_ptr<file> get_file_main(const std::string& name);
 };
 
 inline bool operator==(const file_cache::file& lhs, const file_cache::file& rhs) {

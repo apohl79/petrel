@@ -6,6 +6,7 @@
  */
 
 #include "file_cache.h"
+#include "branch.h"
 
 #include <boost/filesystem.hpp>
 #include <chrono>
@@ -14,6 +15,9 @@
 using namespace boost::filesystem;
 
 namespace petrel {
+
+thread_local file_cache::file_map_type* file_cache::m_file_map_local = nullptr;
+
 file_cache::file::file(const std::string& name, bool read_from_disk) {
     path p(name);
     if (exists(p)) {
@@ -86,6 +90,24 @@ file_cache::~file_cache() {
     m_thread.join();
 }
 
+void file_cache::register_io_service(ba::io_service* iosvc) {
+    m_iosvcs.push_back(iosvc);
+    iosvc->post([] { m_file_map_local = new file_map_type; });
+}
+
+void file_cache::unregister_io_service(ba::io_service* iosvc) {
+    for (auto it = m_iosvcs.begin(); it != m_iosvcs.end(); it++) {
+        if (*it == iosvc) {
+            m_iosvcs.erase(it);
+            break;
+        }
+    }
+    iosvc->post([] {
+        delete m_file_map_local;
+        m_file_map_local = nullptr;
+    });
+}
+
 bool file_cache::scan_directory(const std::string& name) {
     path p(name);
     if (exists(p) && is_directory(p)) {
@@ -93,7 +115,7 @@ bool file_cache::scan_directory(const std::string& name) {
             if (is_directory(entry.status())) {
                 scan_directory(entry.path().string());
             } else {
-                std::shared_ptr<file> f = get_file(entry.path().string());
+                std::shared_ptr<file> f = get_file_main(entry.path().string());
                 if (nullptr == f) {
                     // new file
                     add_file(entry.path().string());
@@ -121,6 +143,11 @@ bool file_cache::add_file(const std::string& name) {
     auto f = std::make_shared<file>(name, true);
     log_debug("loaded object " << name << " (" << f->size() << " bytes)");
     if (f->good()) {
+        // update the local caches
+        for (auto* iosvc : m_iosvcs) {
+            iosvc->post([this, name, f] { (*m_file_map_local)[name] = f; });
+        }
+        // update the main map
         std::lock_guard<std::mutex> lock(m_file_mtx);
         m_file_map[name] = f;
         return true;
@@ -130,6 +157,16 @@ bool file_cache::add_file(const std::string& name) {
 
 void file_cache::remove_file(const std::string& name) {
     log_debug("removing object " << name);
+    // update the local caches
+    for (auto* iosvc : m_iosvcs) {
+        iosvc->post([name] {
+            auto it = m_file_map_local->find(name);
+            if (m_file_map_local->end() != it) {
+                m_file_map_local->erase(it);
+            }
+        });
+    }
+    // update the main map
     std::lock_guard<std::mutex> lock(m_file_mtx);
     auto it = m_file_map.find(name);
     if (m_file_map.end() != it) {
@@ -138,6 +175,25 @@ void file_cache::remove_file(const std::string& name) {
 }
 
 std::shared_ptr<file_cache::file> file_cache::get_file(const std::string& name) {
+    // thread local lookup
+    bool update_local_map = false;
+    if (likely(nullptr != m_file_map_local)) {
+        auto it = m_file_map_local->find(name);
+        if (m_file_map_local->end() != it) {
+            return it->second;
+        }
+        update_local_map = true;
+    }
+    // falling back to main map
+    auto file = get_file_main(name);
+    if (nullptr != file && update_local_map) {
+        // update the local cache
+        (*m_file_map_local)[name] = file;
+    }
+    return file;
+}
+
+std::shared_ptr<file_cache::file> file_cache::get_file_main(const std::string& name) {
     std::lock_guard<std::mutex> lock(m_file_mtx);
     auto it = m_file_map.find(name);
     if (m_file_map.end() != it) {

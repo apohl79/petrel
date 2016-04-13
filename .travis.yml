@@ -15,6 +15,7 @@ matrix:
         apt:
           packages:
             - libstdc++-5-dev
+            - libluajit-5.1-dev
           sources:
             - ubuntu-toolchain-r-test
       install:
@@ -28,6 +29,7 @@ matrix:
           packages:
             - g++-5
             - libstdc++-5-dev
+            - libluajit-5.1-dev
           sources:
             - ubuntu-toolchain-r-test
       install:
@@ -54,6 +56,7 @@ matrix:
         apt:
           packages:
             - clang-3.6
+            - libluajit-5.1-dev
           sources:
             - llvm-toolchain-precise-3.6
             - ubuntu-toolchain-r-test

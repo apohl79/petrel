@@ -36,11 +36,7 @@ class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
     boost::asio::steady_timer keepalive_timer_;
     boost::fibers::scheduler::ready_queue_t ready_queue_{};
 
-#ifndef __clang__
     thread_local static std::uint_fast64_t m_counter;
-#else
-    __thread static std::uint_fast64_t m_counter;
-#endif
 
   public:
     explicit fiber_sched_algorithm(boost::asio::io_service& io_svc)

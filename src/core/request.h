@@ -33,6 +33,8 @@ class request {
 
     enum class mode { HTTP, HTTP2 };
 
+    enum class http_method { GET, POST, OTHER };
+
     static const std::string EMPTY;
 
     class header_iterator {
@@ -72,7 +74,7 @@ class request {
     };
 
     /// HTTP ctor.
-    explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) {}
+    explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) { init(); }
 
     /// HTTP2 ctor.
     request(const http2::server::request& req, const http2::server::response& res, server& srv,
@@ -83,13 +85,14 @@ class request {
             m_http2->path += '?';
             m_http2->path += req.uri().raw_query;
         }
+        init();
     }
 
     /// Dtor.
     virtual ~request() {}
 
-    /// Return the HTTP method
-    inline const std::string& method() const {
+    /// Return the HTTP method string
+    inline const std::string& method_string() const {
         switch (m_mode) {
             case mode::HTTP:
                 return m_http_request->method;
@@ -98,6 +101,9 @@ class request {
         }
         throw std::runtime_error("invalid mode");
     }
+
+    /// Return the HTTP method
+    inline http_method method() const { return m_method; }
 
     /// Return the HTTP protocol
     inline const std::string& proto() const {
@@ -298,6 +304,7 @@ class request {
 
   private:
     mode m_mode;
+    http_method m_method{http_method::OTHER};
 
     // http1
     session::request_type::pointer m_http_request;
@@ -315,6 +322,16 @@ class request {
         std::string path;
     };
     std::unique_ptr<http2_data> m_http2;
+
+    /// Initialize general members
+    void init() {
+        auto& method = method_string();
+        if (method == "GET") {
+            m_method = http_method::GET;
+        } else if (method == "POST") {
+            m_method = http_method::POST;
+        }
+    }
 };
 
 bool operator==(request::header_iterator& lhs, request::header_iterator& rhs);

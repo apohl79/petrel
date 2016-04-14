@@ -160,7 +160,7 @@ class timer : public basic_metric {
                 aggregate.avg = aggregate.sum / aggregate.count;
             }
         }
-        return std::move(aggregate);
+        return aggregate;
     }
 
     void log(std::ostream& os) {

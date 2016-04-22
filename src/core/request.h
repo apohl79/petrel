@@ -9,10 +9,12 @@
 #define REQUEST_H
 
 #include <boost/asio.hpp>
+#include <boost/core/noncopyable.hpp>
 #include <boost/utility/string_ref.hpp>
 #include <memory>
 #include <nghttp2/asio_http2_server.h>
 
+#include "fiber_sched_algorithm.h"
 #include "make_unique.h"
 #include "server.h"
 #include "session.h"
@@ -25,7 +27,7 @@ namespace ba = boost::asio;
 namespace bai = ba::ip;
 
 /// request class
-class request {
+class request : boost::noncopyable {
   public:
     using pointer = std::shared_ptr<request>;
     using http2_content_buffer_type = std::vector<std::uint8_t>;
@@ -73,8 +75,13 @@ class request {
         http2::header_map::const_iterator m_http2_iter;
     };
 
+    request() = delete;
+
     /// HTTP ctor.
-    explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) { init(); }
+    explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) {
+        init();
+        fiber_sched_algorithm::inc_requests();
+    }
 
     /// HTTP2 ctor.
     request(const http2::server::request& req, const http2::server::response& res, server& srv,
@@ -86,10 +93,17 @@ class request {
             m_http2->path += req.uri().raw_query;
         }
         init();
+        fiber_sched_algorithm::inc_requests();
+        // Decrease the request counter after the response (stream) is closed. This object might not exists anymore.
+        res.on_close([](std::uint32_t) { fiber_sched_algorithm::dec_requests(); });
     }
 
     /// Dtor.
-    virtual ~request() {}
+    virtual ~request() {
+        if (mode::HTTP == m_mode) {
+            fiber_sched_algorithm::dec_requests();
+        }
+    }
 
     /// Return the HTTP method string
     inline const std::string& method_string() const {

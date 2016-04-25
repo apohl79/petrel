@@ -8,13 +8,14 @@
 #include "lua_state_manager.h"
 #include "lib/library.h"
 #include "lua_utils.h"
+#include "make_unique.h"
 #include "options.h"
 
 #include <chrono>
 
 namespace petrel {
 
-thread_local lua_state_manager::state_cache_type* lua_state_manager::m_state_cache_local = nullptr;
+thread_local std::unique_ptr<lua_state_manager::state_cache_type> lua_state_manager::m_state_cache_local;
 
 std::vector<lib_reg> lua_state_manager::m_libs_builtin;
 std::vector<lib_reg> lua_state_manager::m_libs;
@@ -69,7 +70,7 @@ lua_state_manager::~lua_state_manager() {
 
 void lua_state_manager::register_io_service(ba::io_service* iosvc) {
     m_iosvcs.push_back(iosvc);
-    iosvc->post([] { m_state_cache_local = new state_cache_type; });
+    iosvc->post([] { m_state_cache_local = std::make_unique<state_cache_type>(); });
 }
 
 void lua_state_manager::unregister_io_service(ba::io_service* iosvc) {
@@ -83,8 +84,7 @@ void lua_state_manager::unregister_io_service(ba::io_service* iosvc) {
         for (auto Lex : *m_state_cache_local) {
             destroy_state(Lex);
         }
-        delete m_state_cache_local;
-        m_state_cache_local = nullptr;
+        m_state_cache_local.reset();
     });
 }
 

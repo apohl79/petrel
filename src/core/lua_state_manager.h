@@ -11,6 +11,7 @@
 #include <boost/asio.hpp>
 #include <boost/core/noncopyable.hpp>
 #include <lua.hpp>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -46,9 +47,9 @@ struct lib_reg {
 
 namespace ba = boost::asio;
 
-/// The lua_state_manager manages lua states by keeping states cached locally to a thread to avoid locking. It creates
-/// states and sets up the lua environment for a state by loading the lua code and libraries etc. It will try to avoid
-/// creating states when handling a request as much as possible.
+/// The lua_state_manager manages lua states by keeping states cached locally to a thread to avoid locking. It
+/// creates states and sets up the lua environment for a state by loading the lua code and libraries etc. It will try to
+/// avoid creating states when handling a request as much as possible.
 class lua_state_manager : boost::noncopyable {
     decl_log_static();
 
@@ -72,8 +73,8 @@ class lua_state_manager : boost::noncopyable {
     /// Destroy a lua state
     void destroy_state(lua_state_ex L);
 
-    /// Register an io service object. As we are running one io service per worker we can use post() to execute cache
-    /// updates in the contect of each worker and maintain thread local caches that require no locks.
+    /// Register an io service object. As we are running one io service per worker we can use post() to execute
+    /// cache updates in the contect of each worker and maintain thread local caches that require no locks.
     ///
     /// @param iosvc The io service object to register
     void register_io_service(ba::io_service* iosvc);
@@ -118,7 +119,7 @@ class lua_state_manager : boost::noncopyable {
     state_cache_type m_state_cache;
     std::mutex m_state_mtx;
 
-    static thread_local state_cache_type* m_state_cache_local;
+    static thread_local std::unique_ptr<state_cache_type> m_state_cache_local;
 
     /// A thread will make sure the state cache has enough state objects available and precreates them.
     std::thread m_state_watcher;

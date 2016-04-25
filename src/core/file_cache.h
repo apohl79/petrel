@@ -107,7 +107,7 @@ class file_cache : boost::noncopyable {
     file_map_type m_file_map;
     std::mutex m_file_mtx;
 
-    static thread_local file_map_type* m_file_map_local;
+    static thread_local std::unique_ptr<file_map_type> m_file_map_local;
 
     std::thread m_thread;
     bool m_stop = false;

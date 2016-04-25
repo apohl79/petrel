@@ -7,6 +7,7 @@
 
 #include "file_cache.h"
 #include "branch.h"
+#include "make_unique.h"
 
 #include <boost/filesystem.hpp>
 #include <chrono>
@@ -16,7 +17,7 @@ using namespace boost::filesystem;
 
 namespace petrel {
 
-thread_local file_cache::file_map_type* file_cache::m_file_map_local = nullptr;
+thread_local std::unique_ptr<file_cache::file_map_type> file_cache::m_file_map_local;
 
 file_cache::file::file(const std::string& name, bool read_from_disk) {
     path p(name);
@@ -92,7 +93,7 @@ file_cache::~file_cache() {
 
 void file_cache::register_io_service(ba::io_service* iosvc) {
     m_iosvcs.push_back(iosvc);
-    iosvc->post([] { m_file_map_local = new file_map_type; });
+    iosvc->post([] { m_file_map_local = std::make_unique<file_map_type>(); });
 }
 
 void file_cache::unregister_io_service(ba::io_service* iosvc) {
@@ -102,10 +103,7 @@ void file_cache::unregister_io_service(ba::io_service* iosvc) {
             break;
         }
     }
-    iosvc->post([] {
-        delete m_file_map_local;
-        m_file_map_local = nullptr;
-    });
+    iosvc->post([] { m_file_map_local.reset(); });
 }
 
 bool file_cache::scan_directory(const std::string& name) {

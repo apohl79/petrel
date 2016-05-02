@@ -6,6 +6,7 @@
  */
 
 #include "file_cache.h"
+#include "asio_post.h"
 #include "branch.h"
 #include "make_unique.h"
 
@@ -103,7 +104,7 @@ void file_cache::unregister_io_service(ba::io_service* iosvc) {
             break;
         }
     }
-    iosvc->post([] { m_file_map_local.reset(); });
+    io_service_post_wait(iosvc, [] { m_file_map_local.reset(); });
 }
 
 bool file_cache::scan_directory(const std::string& name) {

@@ -10,8 +10,8 @@
 
 #include <boost/asio.hpp>
 #include <boost/fiber/all.hpp>
-#include <lua.hpp>
 #include <petrel/core/log.h>
+#include <petrel/core/lua_inc.h>
 #include <petrel/core/resolver_cache.h>
 #include <petrel/core/server.h>
 #include <petrel/fiber/yield.hpp>

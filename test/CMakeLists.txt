@@ -14,7 +14,14 @@ find_package(OpenSSL REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(NGHTTP2 libnghttp2)
 pkg_check_modules(NGHTTP2_ASIO libnghttp2_asio)
-pkg_check_modules(LUA REQUIRED luajit)
+
+if(STOCK_LUA)
+    find_package(LUA REQUIRED)
+    set(LUA_INCLUDE_DIRS "${LUA_INCLUDE_DIR}")
+    set(COMP_FLAGS "${COMP_FLAGS} -DSTOCK_LUA=1")
+else()
+    pkg_check_modules(LUA REQUIRED luajit)
+endif()
 
 # GCC colors
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")

@@ -8,11 +8,11 @@
 #ifndef LUA_UTILS_H
 #define LUA_UTILS_H
 
-#include <lua.hpp>
 #include <string>
 #include <vector>
 
 #include "log.h"
+#include "lua_inc.h"
 
 namespace petrel {
 

@@ -13,7 +13,8 @@
 #include <vector>
 
 #include <boost/asio.hpp>
-#include <lua.hpp>
+
+#include <petrel/core/lua_inc.h>
 
 namespace petrel {
 

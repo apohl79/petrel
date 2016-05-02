@@ -31,7 +31,17 @@ find_package(OpenSSL REQUIRED)
 find_package(PkgConfig)
 pkg_check_modules(NGHTTP2 REQUIRED libnghttp2)
 pkg_check_modules(NGHTTP2_ASIO REQUIRED libnghttp2_asio)
-pkg_check_modules(LUA REQUIRED luajit)
+
+set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
+
+option(STOCK_LUA "Use stock lua instead of luajit." off)
+if(STOCK_LUA)
+    find_package(LUA REQUIRED)
+    set(LUA_INCLUDE_DIRS "${LUA_INCLUDE_DIR}")
+    set(COMP_FLAGS "${COMP_FLAGS} -DSTOCK_LUA=1")
+else()
+    pkg_check_modules(LUA REQUIRED luajit)
+endif()
 
 option(DISABLE_JEMALLOC "Do not use jemalloc.")
 if(NOT DISABLE_JEMALLOC STREQUAL "on")
@@ -48,8 +58,6 @@ if(JEMALLOC_FOUND)
 elseif(TCMALLOC_FOUND)
     message(STATUS "Linking tcmalloc")
 endif()
-
-set(COMP_FLAGS "-Wall -Wextra -Wmissing-braces -pthread -g")
 
 # FIXME: fiber causes unused-parameter warnings, so take it out for now
 set(COMP_FLAGS "${COMP_FLAGS} -Wno-unused-parameter")
@@ -90,6 +98,7 @@ file(GLOB HEADERS
   "core/server.h"
   "core/log.h"
   "core/branch.h"
+  "core/lua_inc.h"
   "core/resolver_cache.h"
   "lib/library.h"
   "metrics/*.h"

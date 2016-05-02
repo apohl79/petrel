@@ -164,9 +164,9 @@ void lua_engine::push_request(lua_State* L, request::pointer req) {
     lua_pushstring(L, req->path().c_str());
     lua_setfield(L, -2, "path");
     lua_createtable(L, 0, req->headers_size());
-    std::for_each(req->headers_begin(), req->headers_end(), [L](const request::header_type h) {
-        lua_pushstring(L, h.second.c_str());
-        lua_setfield(L, -2, h.first.c_str());
+    std::for_each(req->headers_begin(), req->headers_end(), [L](const request::header_iterator& h) {
+        lua_pushstring(L, h.second().c_str());
+        lua_setfield(L, -2, h.first().c_str());
     });
     lua_setfield(L, -2, "headers");
     auto addr = req->remote_endpoint().address();

@@ -56,13 +56,24 @@ class request : boost::noncopyable {
             return *this;
         }
 
-        const header_type operator*() const {
+        const header_iterator& operator*() const { return *this; }
+
+        const std::string& first() const {
             switch (m_mode) {
                 case mode::HTTP:
-                    return *m_http_iter;
+                    return m_http_iter->first;
                 case mode::HTTP2:
-                    auto p = *m_http2_iter;
-                    return std::make_pair(p.first, p.second.value);
+                    return m_http2_iter->first;
+            }
+            throw std::runtime_error("invalid mode");
+        }
+
+        const std::string& second() const {
+            switch (m_mode) {
+                case mode::HTTP:
+                    return m_http_iter->second;
+                case mode::HTTP2:
+                    return m_http2_iter->second.value;
             }
             throw std::runtime_error("invalid mode");
         }
@@ -80,7 +91,7 @@ class request : boost::noncopyable {
     /// HTTP ctor.
     explicit request(session::request_type::pointer req) : m_mode(mode::HTTP), m_http_request(req) {
         init();
-        fiber_sched_algorithm::inc_requests();
+        fiber_sched_algorithm::update();
     }
 
     /// HTTP2 ctor.
@@ -93,15 +104,15 @@ class request : boost::noncopyable {
             m_http2->path += req.uri().raw_query;
         }
         init();
-        fiber_sched_algorithm::inc_requests();
+        fiber_sched_algorithm::update();
         // Decrease the request counter after the response (stream) is closed. This object might not exists anymore.
-        res.on_close([](std::uint32_t) { fiber_sched_algorithm::dec_requests(); });
+        res.on_close([](std::uint32_t) { fiber_sched_algorithm::update(); });
     }
 
     /// Dtor.
     virtual ~request() {
         if (mode::HTTP == m_mode) {
-            fiber_sched_algorithm::dec_requests();
+            fiber_sched_algorithm::update();
         }
     }
 

@@ -24,14 +24,13 @@ namespace petrel {
 
 namespace bs = boost::system;
 namespace bpo = boost::program_options;
-namespace bf = boost::fibers;
 namespace bfa = bf::asio;
 
 /// Thread safe int rand
 std::uint16_t int_rand(std::uint16_t min, std::uint16_t max) {
-    static thread_local std::minstd_rand* gen = nullptr;
+    static thread_local std::unique_ptr<std::minstd_rand> gen;
     if (unlikely(nullptr == gen)) {
-        gen = new std::minstd_rand;
+        gen = std::make_unique<std::minstd_rand>();
     }
     std::uniform_int_distribution<std::uint16_t> dist(min, max);
     return dist(*gen);
@@ -159,17 +158,13 @@ void server_impl::start_http() {
     // Run the io_service objects
     for (auto& w : m_workers) {
         w->start(*m_server);
-        // create a thread local lua state cache
-        m_lua_engine.state_manager().register_io_service(&w->io_service());
-        // create a thread local file cache
-        m_file_cache.register_io_service(&w->io_service());
     }
+    register_io_services();
     log_notice("http server listening on " << listen << ":" << port);
     m_stop_func = [this] {
         // Stop the workers
+        unregister_io_services();
         for (auto& w : m_workers) {
-            m_lua_engine.state_manager().unregister_io_service(&w->io_service());
-            m_file_cache.unregister_io_service(&w->io_service());
             w->stop();
         }
     };
@@ -188,8 +183,6 @@ void server_impl::add_route(const std::string& path, const std::string& func) {
     m_router.add_route(path, [this, func, metric_req, metric_times, metric_err](request::pointer req) {
         log_debug("incomong request: method=" << req->method_string() << " path='" << req->path()
                                               << "' -> func=" << func);
-        // reset the idle counter to stay responsive when we get traffic
-        fiber_sched_algorithm::reset_idle_counter();
         // we support only GET/POST
         if (req->method() == request::http_method::GET || req->method() == request::http_method::POST) {
             // total requests
@@ -207,7 +200,7 @@ void server_impl::add_route(const std::string& path, const std::string& func) {
             }
             try {
                 // create a fiber and run the request handler
-                bf::fiber([this, func, req, times, metric_err] {
+                m_fiber_cache.run([this, func, req, times, metric_err] {
                     try {
                         m_lua_engine.handle_request(func, req);
                     } catch (std::runtime_error& e) {
@@ -216,7 +209,7 @@ void server_impl::add_route(const std::string& path, const std::string& func) {
                         metric_err->increment();
                         req->send_error_response(500);
                     }
-                }).detach();
+                });
             } catch (std::runtime_error& e) {
                 log_debug("fiber failed: " << e.what());
                 m_metric_errors->increment();
@@ -240,7 +233,6 @@ void server_impl::add_directory_route(const std::string& path, const std::string
         m_router.add_route(path, [this, path, dir, metric_req, metric_times, metric_err](request::pointer req) {
             log_debug("incomong request: method=" << req->method_string() << " path='" << req->path()
                                                   << "' -> static_dir=" << dir);
-            fiber_sched_algorithm::reset_idle_counter();
             if (req->method() == request::http_method::GET) {
                 // measure time with 10% sampling to keep the impact low
                 std::unique_ptr<metrics::timer::duration> times;
@@ -287,21 +279,11 @@ void server_impl::run_http2_server() {
                                          true)) {
         throw std::runtime_error(ec.message());
     }
-    for (auto iosvc : m_http2_server->io_services()) {
-        // register asio scheduler
-        iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
-        // create a thread local lua state cache
-        m_lua_engine.state_manager().register_io_service(iosvc.get());
-        // create a thread local file cache
-        m_file_cache.register_io_service(iosvc.get());
-    }
+    register_io_services();
     log_notice("http2 server listening on " << options::get_string("server.listen") << ":"
                                             << options::get_string("server.port"));
     m_stop_func = [this] {
-        for (auto iosvc : m_http2_server->io_services()) {
-            m_lua_engine.state_manager().unregister_io_service(iosvc.get());
-            m_file_cache.unregister_io_service(iosvc.get());
-        }
+        unregister_io_services();
         m_http2_server->stop();
     };
     m_join_func = [this] { m_http2_server->join(); };
@@ -334,24 +316,53 @@ void server_impl::run_http2_tls_server() {
                                          options::get_string("server.port"), true)) {
         throw std::runtime_error(ec.message());
     }
-    for (auto iosvc : m_http2_server->io_services()) {
-        // register asio scheduler
-        iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
-        // create a thread local lua state cache
-        m_lua_engine.state_manager().register_io_service(iosvc.get());
-        // create a thread local file cache
-        m_file_cache.register_io_service(iosvc.get());
-    }
+    register_io_services();
     log_notice("http2 server listening on " << options::get_string("server.listen") << ":"
                                             << options::get_string("server.port"));
     m_stop_func = [this] {
-        for (auto iosvc : m_http2_server->io_services()) {
-            m_lua_engine.state_manager().unregister_io_service(iosvc.get());
-            m_file_cache.unregister_io_service(iosvc.get());
-        }
+        unregister_io_services();
         m_http2_server->stop();
     };
     m_join_func = [this] { m_http2_server->join(); };
+}
+
+void server_impl::register_io_services() {
+    auto regf = [this](ba::io_service* iosvc) {
+        // create a thread local lua state cache
+        m_lua_engine.state_manager().register_io_service(iosvc);
+        // create a thread local file cache
+        m_file_cache.register_io_service(iosvc);
+        // create a thread local fiber cache
+        m_fiber_cache.register_io_service(iosvc);
+    };
+    if (!options::is_set("server.http1")) {
+        for (auto iosvc : m_http2_server->io_services()) {
+            // register asio scheduler
+            iosvc->post([iosvc] { bf::use_scheduling_algorithm<fiber_sched_algorithm>(*iosvc); });
+            regf(iosvc.get());
+        }
+    } else {
+        for (auto& w : m_workers) {
+            regf(&w->io_service());
+        }
+    }
+}
+
+void server_impl::unregister_io_services() {
+    auto unregf = [this](ba::io_service* iosvc) {
+        m_lua_engine.state_manager().unregister_io_service(iosvc);
+        m_file_cache.unregister_io_service(iosvc);
+        m_fiber_cache.unregister_io_service(iosvc);
+    };
+    if (!options::is_set("server.http1")) {
+        for (auto iosvc : m_http2_server->io_services()) {
+            unregf(iosvc.get());
+        }
+    } else {
+        for (auto& w : m_workers) {
+            unregf(&w->io_service());
+        }
+    }
 }
 
 }  // petrel

@@ -20,6 +20,7 @@
 #include <nghttp2/asio_http2_server.h>
 
 #include "boost/http/buffered_socket.hpp"
+#include "fiber_cache.h"
 #include "file_cache.h"
 #include "lua_engine.h"
 #include "metrics/meter.h"
@@ -99,6 +100,7 @@ class server_impl : boost::noncopyable {
     router m_router;
     metrics::registry m_registry;
     file_cache m_file_cache;
+    fiber_cache m_fiber_cache;
 
     /// HTTP2 mode
     std::unique_ptr<http2::server::http2> m_http2_server;
@@ -116,6 +118,9 @@ class server_impl : boost::noncopyable {
 
     void run_http2_server();
     void run_http2_tls_server();
+
+    void register_io_services();
+    void unregister_io_services();
 
     std::shared_ptr<file_cache::file> find_static_file(const std::string& dir, const std::string& path,
                                                        const std::string& req_path);

@@ -7,22 +7,20 @@
 
 #include "asio_post.h"
 
-#include <condition_variable>
-#include <mutex>
+#include <atomic>
+#include <thread>
 
 namespace petrel {
 
 void io_service_post_wait(ba::io_service* iosvc, std::function<void()> func) {
-    std::condition_variable cv;
-    bool done = false;
+    std::atomic_bool done{false};
     iosvc->post([&] {
         func();
         done = true;
-        cv.notify_one();
     });
-    std::mutex mtx;
-    std::unique_lock<std::mutex> lock(mtx);
-    cv.wait(lock, [&done] { return done; });
+    while (!done) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 }  // petrel

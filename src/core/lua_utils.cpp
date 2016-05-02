@@ -203,7 +203,7 @@ int lua_utils::traceback(lua_State* L) {
 }
 
 void lua_utils::lua_requiref(lua_State* L, const char* modname, lua_CFunction openf, int glb) {
-    lua_getregistry(L);
+    lua_pushvalue(L, LUA_REGISTRYINDEX);
     lua_getfield(L, -1, modname); /* _LOADED[modname] */
     if (!lua_toboolean(L, -1)) {  /* package not already loaded? */
         lua_pop(L, 1);            /* remove field */

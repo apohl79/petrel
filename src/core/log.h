@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <iostream>
 #include <memory>
+#include <mutex>
 #include <ostream>
 #include <syslog.h>
 
@@ -107,6 +108,7 @@ class log : public std::basic_streambuf<char, std::char_traits<char> > {
   private:
     friend std::ostream& operator<<(std::ostream& os, const log_priority& priority);
     std::string m_buffer;
+    std::mutex m_mtx;
     int m_facility;
     int m_priority;
     char m_ident[50];

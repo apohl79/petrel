@@ -85,6 +85,7 @@ int log::sync() {
 }
 
 int log::overflow(int c) {
+    std::lock_guard<std::mutex> lock(m_mtx);
     if (c != EOF) {
         m_buffer += static_cast<char>(c);
     } else {

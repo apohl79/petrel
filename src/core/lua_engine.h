@@ -17,8 +17,6 @@
 
 #include <boost/core/noncopyable.hpp>
 
-#include <lua.hpp>
-
 #include "log.h"
 #include "lua_state_manager.h"
 #include "metrics/counter.h"

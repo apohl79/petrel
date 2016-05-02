@@ -6,6 +6,7 @@
  */
 
 #include "lua_state_manager.h"
+#include "asio_post.h"
 #include "lib/library.h"
 #include "lua_utils.h"
 #include "make_unique.h"
@@ -80,7 +81,7 @@ void lua_state_manager::unregister_io_service(ba::io_service* iosvc) {
             break;
         }
     }
-    iosvc->post([this] {
+    io_service_post_wait(iosvc, [this] {
         for (auto Lex : *m_state_cache_local) {
             destroy_state(Lex);
         }

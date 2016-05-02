@@ -10,7 +10,6 @@
 
 #include <boost/asio.hpp>
 #include <boost/core/noncopyable.hpp>
-#include <lua.hpp>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -18,6 +17,7 @@
 #include <vector>
 
 #include "log.h"
+#include "lua_inc.h"
 
 namespace petrel {
 

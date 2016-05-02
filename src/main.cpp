@@ -21,7 +21,7 @@
 void sig_handler(petrel::server& s, const petrel::bs::error_code& ec, int signal_number) {
     if (!ec) {
         set_log_tag("main");
-        log_info("Received signal " << signal_number);
+        log_info("received signal " << signal_number);
         s.impl()->stop();
     }
 }
@@ -52,6 +52,9 @@ int main(int argc, const char** argv) {
     ProfilerStart("petrel.prof");
 #endif
 
+    set_log_tag("main");
+    log_notice("petrel/" << PETREL_VERSION);
+
     try {
         petrel::server s;
         petrel::ba::io_service iosvc;
@@ -62,10 +65,11 @@ int main(int argc, const char** argv) {
         iosvc.run();  // wait for a signal to stop
         s.impl()->join();
     } catch (std::exception& e) {
-        set_log_tag("main");
         log_emerg(e.what());
         return 1;
     }
+
+    log_notice("shutdown complete");
 
 #ifdef GOOGLE_PROFILER
     ProfilerStop();

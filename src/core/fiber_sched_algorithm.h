@@ -28,16 +28,18 @@
 
 namespace petrel {
 
+namespace bf = boost::fibers;
+
 auto constexpr WAIT_INTERVAL_SHORT = std::chrono::nanoseconds(100);
 auto constexpr WAIT_INTERVAL_LONG = std::chrono::milliseconds(1);
 auto constexpr WAIT_INTERVAL_EXTRALONG = std::chrono::milliseconds(30);
 
-class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
+class fiber_sched_algorithm : public bf::algo::algorithm {
   private:
     boost::asio::io_service& m_iosvc;
     boost::asio::steady_timer m_suspend_timer;
     boost::asio::steady_timer m_keepalive_timer;
-    boost::fibers::scheduler::ready_queue_t m_ready_queue{};
+    bf::scheduler::ready_queue_t m_ready_queue{};
 
     thread_local static std::uint_fast64_t m_counter;
     thread_local static double m_rate_l;
@@ -50,19 +52,18 @@ class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
         on_empty_io_service();
     }
 
-    void awakened(boost::fibers::context* ctx) noexcept {
+    void awakened(bf::context* ctx) noexcept {
         BOOST_ASSERT(nullptr != ctx);
-        BOOST_ASSERT(!ctx->ready_is_linked());
         ctx->ready_link(m_ready_queue);
     }
 
-    boost::fibers::context* pick_next() noexcept {
-        boost::fibers::context* ctx(nullptr);
+    bf::context* pick_next() noexcept {
+        bf::context* ctx(nullptr);
         if (!m_ready_queue.empty()) {
             ctx = &m_ready_queue.front();
             m_ready_queue.pop_front();
             BOOST_ASSERT(nullptr != ctx);
-            BOOST_ASSERT(!ctx->ready_is_linked());
+            BOOST_ASSERT(bf::context::active() != ctx);
         }
         return ctx;
     }
@@ -70,9 +71,10 @@ class fiber_sched_algorithm : public boost::fibers::sched_algorithm {
     bool has_ready_fibers() const noexcept { return !m_ready_queue.empty(); }
 
     void suspend_until(std::chrono::steady_clock::time_point const& suspend_time) noexcept {
-        m_suspend_timer.expires_at(suspend_time);
-        boost::system::error_code ignored_ec;
-        m_suspend_timer.async_wait(boost::fibers::asio::yield[ignored_ec]);
+        if (m_suspend_timer.expires_at() != suspend_time) {
+            m_suspend_timer.expires_at(suspend_time);
+            m_suspend_timer.async_wait([](boost::system::error_code const&) {});
+        }
     }
 
     void notify() noexcept { m_suspend_timer.expires_at(std::chrono::steady_clock::now()); }

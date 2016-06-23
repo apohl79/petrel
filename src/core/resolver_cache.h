@@ -58,7 +58,7 @@ class resolver_cache {
     const typename cache<proto_type>::resolver_iterator async_resolve(boost::asio::io_service& iosvc,
                                                                       const std::string& host,
                                                                       const std::string& service,
-                                                                      boost::fibers::asio::yield_t<> yield) {
+                                                                      boost::fibers::asio::yield_t yield) {
         using iterator = typename cache<proto_type>::resolver_iterator;
         using query = typename cache<proto_type>::query;
         using resolver = typename cache<proto_type>::resolver;

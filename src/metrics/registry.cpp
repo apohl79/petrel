@@ -118,7 +118,12 @@ void registry::run() {
             while (!m_new_metrics.empty()) {
                 auto metric = m_new_metrics.front();
                 m_new_metrics.pop();
-                bf::fiber([metric] { metric->aggregate(); }).detach();
+                bf::fiber([this, metric] {
+                    while (!m_stop) {
+                        boost::this_fiber::sleep_for(std::chrono::seconds(1));
+                        metric->aggregate();
+                    }
+                }).detach();
             }
         }
     }).detach();

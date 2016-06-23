@@ -8,18 +8,13 @@
 #ifndef METRICS_METER_H
 #define METRICS_METER_H
 
-#include <chrono>
 #include <cmath>
 #include <memory>
-
-#include <boost/fiber/all.hpp>
 
 #include <petrel/metrics/counter.h>
 
 namespace petrel {
 namespace metrics {
-
-namespace bf = boost::fibers;
 
 /// Meter class which supports rates over 1min, 5min, 15min and 1hr intervals by implementing EWMA.
 /// See: https://en.wikipedia.org/wiki/Moving_average#Exponential_moving_average
@@ -31,15 +26,12 @@ class meter : public basic_metric {
         : ALPHA_1min(alpha(60)), ALPHA_5min(alpha(5 * 60)), ALPHA_15min(alpha(15 * 60)), ALPHA_1hr(alpha(60 * 60)) {}
 
     void aggregate() {
-        for (;;) {
-            boost::this_fiber::sleep_for(std::chrono::seconds(1));
-            auto c = m_counter_1s.get_and_reset();
-            m_counter_total += c;
-            m_rate_1min = m_rate_1min * (1 - ALPHA_1min) + c * ALPHA_1min;
-            m_rate_5min = m_rate_5min * (1 - ALPHA_5min) + c * ALPHA_5min;
-            m_rate_15min = m_rate_15min * (1 - ALPHA_15min) + c * ALPHA_15min;
-            m_rate_1hr = m_rate_1hr * (1 - ALPHA_1hr) + c * ALPHA_1hr;
-        }
+        auto c = m_counter_1s.get_and_reset();
+        m_counter_total += c;
+        m_rate_1min = m_rate_1min * (1 - ALPHA_1min) + c * ALPHA_1min;
+        m_rate_5min = m_rate_5min * (1 - ALPHA_5min) + c * ALPHA_5min;
+        m_rate_15min = m_rate_15min * (1 - ALPHA_15min) + c * ALPHA_15min;
+        m_rate_1hr = m_rate_1hr * (1 - ALPHA_1hr) + c * ALPHA_1hr;
     }
 
     void log(std::ostream& os) { os << "1m rate " << m_rate_1min; }
@@ -71,7 +63,7 @@ class meter : public basic_metric {
 
   private:
     counter m_counter_1s;
-    std::uint_fast64_t m_counter_total;
+    std::uint_fast64_t m_counter_total = 0;
     double m_rate_1min = 0.0;
     double m_rate_5min = 0.0;
     double m_rate_15min = 0.0;

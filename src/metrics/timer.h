@@ -17,8 +17,6 @@
 #include <mutex>
 #include <vector>
 
-#include <boost/fiber/all.hpp>
-
 #include <petrel/core/log.h>
 #include <petrel/metrics/basic_metric.h>
 
@@ -91,8 +89,8 @@ class timer : public basic_metric {
     timer(std::size_t num_of_bins = 10, double bin_size = 1000000) : m_num_of_bins(num_of_bins), m_bin_size(bin_size) {}
 
     void aggregate() {
-        for (;;) {
-            boost::this_fiber::sleep_for(std::chrono::seconds(10));
+        if (++m_aggregate_counter >= 10) {
+            m_aggregate_counter = 0;
             auto& data = m_times[m_times_idx];
             {
                 // switch to the other buffer
@@ -218,6 +216,7 @@ class timer : public basic_metric {
     std::mutex m_mtx;
     std::size_t m_num_of_bins;
     double m_bin_size;
+    std::uint8_t m_aggregate_counter = 0;
 };
 
 }  // metrics

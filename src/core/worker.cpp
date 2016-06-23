@@ -8,7 +8,6 @@
 #include <petrel/fiber/yield.hpp>
 
 #include "fiber_sched_algorithm.h"
-#include "log.h"
 #include "options.h"
 #include "server.h"
 #include "server_impl.h"
@@ -26,7 +25,7 @@ worker::~worker() {
 }
 
 void worker::do_accept(tcp::acceptor& acceptor, server& srv) {
-    for (;;) {
+    while (acceptor.is_open()) {
         bs::error_code ec;
         // get an io service to use for a new client, we pick them via round robin
         auto& worker = srv.impl()->get_worker();
@@ -92,6 +91,10 @@ void worker::start(server& srv) { m_thread = std::thread(&worker::run, this, std
 void worker::stop() {
     if (!m_stop) {
         m_stop = true;
+        for (auto& acceptor : m_acceptors) {
+            acceptor.close();
+        }
+        m_new_session_cv.notify_one();
         m_iosvc.stop();
     }
 }

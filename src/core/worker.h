@@ -17,6 +17,7 @@
 #include <boost/core/noncopyable.hpp>
 #include <boost/fiber/all.hpp>
 
+#include "log.h"
 #include "session.h"
 
 namespace petrel {

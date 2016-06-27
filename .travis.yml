@@ -65,7 +65,7 @@ matrix:
         - sudo apt-get install -qq g++-4.9 gdb
 
 before_install:
-  - if [ "$USE_CC" = "clang" ]; then curl http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz | tar xJ -C /usr/local --strip-components=1; fi
+  - if [ "$USE_CC" = "clang" ]; then curl http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz | sudo tar xJ -C /usr/local --strip-components=1; fi
 
 before_script:
   # fiber does currently only compile with g++ 4.9

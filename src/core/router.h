@@ -27,10 +27,7 @@ class router {
   public:
     using route_func_type = std::function<void(request::pointer)>;
 
-    router() {
-        // 404 default
-        m_default_func = [](request::pointer req) { req->send_error_response(404); };
-    }
+    router();
 
     /// Add a route function for a path. All incoming requests starting with the given path string will be handled by
     /// the given function.

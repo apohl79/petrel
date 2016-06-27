@@ -67,8 +67,6 @@ class router {
         using node_type = Node;
         using func_type = typename node_type::func_type;
 
-        path_set() {}
-
         node_type& insert(const std::string& path, func_type func) {
             auto* next = root;
             for (std::size_t i = 0; i < path.length(); ++i) {

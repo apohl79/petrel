@@ -65,9 +65,8 @@ void session::start() {
             if (e.code() != ba::error::eof && e.code() != ba::error::operation_aborted &&
                 e.code() != ba::error::connection_reset) {
                 log_err(e.what());
-            } else {
-                break;
             }
+            break;
         }
     }
 }

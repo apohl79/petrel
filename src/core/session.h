@@ -30,9 +30,9 @@ class server;
 /// Session class
 /// Each new client gets handled by a session object
 class session : public std::enable_shared_from_this<session> {
-  public:
     set_log_tag_default_priority("session");
 
+  public:
     using pointer = std::shared_ptr<session>;
 
     struct response_t {

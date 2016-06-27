@@ -91,10 +91,12 @@ void worker::start(server& srv) { m_thread = std::thread(&worker::run, this, std
 void worker::stop() {
     if (!m_stop) {
         m_stop = true;
+        m_new_session_cv.notify_one();
         for (auto& acceptor : m_acceptors) {
             acceptor.close();
         }
-        m_new_session_cv.notify_one();
+        // let the acceptors finish
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
         m_iosvc.stop();
     }
 }

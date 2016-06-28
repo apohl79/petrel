@@ -22,12 +22,79 @@ namespace petrel {
 namespace http = boost::http;
 namespace http2 = nghttp2::asio_http2;
 
+/// A set like struct that is indexing a string by character
+template <typename Node>
+class path_set {
+  public:
+    using node_type = Node;
+    using func_type = typename node_type::func_type;
+
+    node_type& insert(const std::string& path, func_type func) {
+        auto* next = root;
+        for (std::size_t i = 0; i < path.length(); ++i) {
+            std::uint8_t c = path[i];
+            auto& node = next[c];
+            if (i == path.length() - 1) {
+                node.term = true;
+                node.func = func;
+                return node;
+            } else {
+                if (nullptr == node.next) {
+                    node.next = new node_type[256];
+                }
+                next = node.next;
+            }
+        }
+        throw std::runtime_error("insert failed");
+    }
+
+    func_type& find(const std::string& path) {
+        auto* next = root;
+        node_type* found = nullptr;
+        for (std::size_t i = 0; i < path.length(); ++i) {
+            std::uint8_t c = path[i];
+            auto& node = next[c];
+            if (node.term) {
+                found = &node;
+            }
+            if (nullptr == node.next) {
+                break;
+            }
+            next = node.next;
+        }
+        if (nullptr != found) {
+            return found->func;
+        }
+        throw std::runtime_error("find failed");
+    }
+
+  private:
+    node_type root[256];
+};
+
+/// A node in the search set.
+template <typename Func>
+struct path_node {
+    using func_type = Func;
+    bool term = false;
+    func_type func;
+    path_node* next = nullptr;
+    ~path_node() {
+        if (nullptr != next) {
+            delete[] next;
+        }
+    }
+};
+
 /// A router maps path strings to handler functions.
 class router {
   public:
     using route_func_type = std::function<void(request::pointer)>;
 
-    router();
+    router() {
+        // 404 default
+        m_default_func = [](request::pointer req) { req->send_error_response(404); };
+    }
 
     /// Add a route function for a path. All incoming requests starting with the given path string will be handled by
     /// the given function.
@@ -43,70 +110,6 @@ class router {
     }
 
   private:
-    /// A node in the search set.
-    template <typename Func>
-    struct path_node {
-        using func_type = Func;
-        bool term = false;
-        func_type func;
-        path_node* next = nullptr;
-        ~path_node() {
-            if (nullptr != next) {
-                delete[] next;
-            }
-        }
-    };
-
-    /// A set like struct that is indexing a string by character
-    template <typename Node>
-    class path_set {
-      public:
-        using node_type = Node;
-        using func_type = typename node_type::func_type;
-
-        node_type& insert(const std::string& path, func_type func) {
-            auto* next = root;
-            for (std::size_t i = 0; i < path.length(); ++i) {
-                std::uint8_t c = path[i];
-                auto& node = next[c];
-                if (i == path.length() - 1) {
-                    node.term = true;
-                    node.func = func;
-                    return node;
-                } else {
-                    if (nullptr == node.next) {
-                        node.next = new node_type[256];
-                    }
-                    next = node.next;
-                }
-            }
-            throw std::runtime_error("insert failed");
-        }
-
-        func_type& find(const std::string& path) {
-            auto* next = root;
-            node_type* found = nullptr;
-            for (std::size_t i = 0; i < path.length(); ++i) {
-                std::uint8_t c = path[i];
-                auto& node = next[c];
-                if (node.term) {
-                    found = &node;
-                }
-                if (nullptr == node.next) {
-                    break;
-                }
-                next = node.next;
-            }
-            if (nullptr != found) {
-                return found->func;
-            }
-            throw std::runtime_error("find failed");
-        }
-
-      private:
-        node_type root[256];
-    };
-
     path_set<path_node<route_func_type>> m_set;
     route_func_type m_default_func;
 };

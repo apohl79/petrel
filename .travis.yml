@@ -36,55 +36,66 @@ matrix:
         - sudo apt-get update -qq
         - sudo apt-get install -qq g++-4.9 gdb
 
-# boost.fiber does not compile with clang 3.5 atm
-#    - os: linux
-#      env: USE_CC=clang-3.5 USE_CXX=clang++-3.5
-#      addons: &clang35
-#        apt:
-#          packages:
-#            - clang-3.5
-#          sources:
-#            - llvm-toolchain-precise-3.5
-#            - ubuntu-toolchain-r-test
-#      install:
-#        - sudo apt-get update -qq
-#        - sudo apt-get install -qq g++-4.9
+    - os: linux
+      env: USE_CC=/usr/local/bin/clang USE_CXX=/usr/local/bin/clang++ CLANG_VER=3.6.2
+      addons:
+        apt:
+          packages:
+            #- clang-3.6
+            - libluajit-5.1-dev
+          sources:
+            #- llvm-toolchain-precise-3.6
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9 gdb
 
-#    - os: linux
-#      env: USE_CC=clang USE_CXX=clang++
-#      addons: &clang36
-#        apt:
-#          packages:
-#            #- clang-3.6
-#            - libluajit-5.1-dev
-#          sources:
-#            #- llvm-toolchain-precise-3.6
-#            - ubuntu-toolchain-r-test
-#      install:
-#        - sudo apt-get update -qq
-#        - sudo apt-get install -qq g++-4.9 gdb
+    - os: linux
+      env: USE_CC=/usr/local/bin/clang USE_CXX=/usr/local/bin/clang++ CLANG_VER=3.7.1
+      addons:
+        apt:
+          packages:
+            #- clang-3.6
+            - libluajit-5.1-dev
+          sources:
+            #- llvm-toolchain-precise-3.6
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9 gdb
+
+    - os: linux
+      env: USE_CC=/usr/local/bin/clang USE_CXX=/usr/local/bin/clang++ CLANG_VER=3.8.0
+      addons:
+        apt:
+          packages:
+            #- clang-3.6
+            - libluajit-5.1-dev
+          sources:
+            #- llvm-toolchain-precise-3.6
+            - ubuntu-toolchain-r-test
+      install:
+        - sudo apt-get update -qq
+        - sudo apt-get install -qq g++-4.9 gdb
 
 before_install:
-  - if [ "$USE_CC" = "clang" ]; then curl http://llvm.org/releases/3.6.2/clang+llvm-3.6.2-x86_64-linux-gnu-ubuntu-15.04.tar.xz | sudo tar xJ -C /usr/local --strip-components=1; fi
+  - if [ "$USE_CC" = "/usr/local/bin/clang" ]; then curl http://llvm.org/releases/$CLANG_VER/clang+llvm-$CLANG_VER-x86_64-linux-gnu-ubuntu-14.04.tar.xz | sudo tar xJ -C /usr/local --strip-components=1; fi
 
 before_script:
-  # fiber does currently only compile with g++ 4.9
-  - export CC=gcc-4.9; export CXX=g++-4.9
+  - export CC=$USE_CC; export CXX=$USE_CXX
   - export BUILD_ROOT=$(pwd)
   - cd $HOME
-  #- git clone --recursive https://github.com/boostorg/boost.git
-  - curl http://netcologne.dl.sourceforge.net/project/boost/boost/1.61.0.beta.1/boost_1_61_0_b1.tar.bz2 | tar xj
-  - pushd "boost_1_61_0_b1"
+  - curl http://netcologne.dl.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2 | tar xj
+  - pushd "boost_1_61_0"
   - pushd "libs"
   - if [ ! -d fiber ]; then git clone https://github.com/olk/boost-fiber.git fiber; else cd fiber; git pull; cd ..; fi
   - popd
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then export GCC=$(which $CXX); fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then ./bootstrap.sh --prefix=/usr/local/boost --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic; fi
+  - export GCC=$(which $CXX)
+  - echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam
+  - ./bootstrap.sh --prefix=/usr/local/boost --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic
   - ./b2 -q -d0 --user-config=user-config.jam headers
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install; fi
+  - sudo ./b2 -q -d0 --user-config=user-config.jam cxxflags="-std=c++11 -fPIC" threading=multi link=static install
   - popd
-  - export CC=$USE_CC; export CXX=$USE_CXX
   - curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.7.0/nghttp2-1.7.0.tar.bz2 | tar xj
   - pushd "nghttp2-1.7.0"
   - ./configure --with-boost=/usr/local/boost --enable-asio-lib
@@ -95,7 +106,10 @@ before_script:
 script:
   - mkdir build && cd build
   - cmake -DBOOST_ROOT=/usr/local/boost ..
-  - make && ctest --output-on-failure
+  - make
+  - export LD_LIBRARY_PATH=/usr/local/lib
+  - ldd src/petrel
+  - ctest --output-on-failure
   # tests can be run in gdb to get stack traces using the script below:
   #- echo "errors=0; count=0" > runtest.sh
   #- echo "for t in test/test_*; do" >> runtest.sh

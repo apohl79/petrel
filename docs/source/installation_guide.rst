@@ -6,7 +6,7 @@ Petrel has the following dependencies that you need to compile yourself at the m
 * boost 1.61+
 * boost.fiber (not yet part of the official boost libraries)
 * nghttp2 1.7+
-* luajit 2+ or lua 5.2+ (stock lua needs to be compiled with C++ support, see below)
+* luajit 2+ or lua 5.2+ (Note: Stock lua needs to be compiled with C++ support!)
 
 Tested environments:
 

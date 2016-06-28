@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.1.0
+                0.2.0
               </div>
             
           
@@ -144,14 +144,14 @@
 <h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this headline">¶</a></h1>
 <p>Petrel has the following dependencies that you need to compile yourself at the moment:</p>
 <ul class="simple">
-<li>boost</li>
+<li>boost 1.61+</li>
 <li>boost.fiber (not yet part of the official boost libraries)</li>
-<li>nghttp2</li>
-<li>lua (we need to build lua with C++ support)</li>
+<li>nghttp2 1.7+</li>
+<li>luajit 2+ or lua 5.2+ (stock lua needs to be compiled with C++ support, see below)</li>
 </ul>
 <p>Tested environments:</p>
 <ul class="simple">
-<li>Linux: GCC 4.9, 5.3 and Clang 3.6</li>
+<li>Linux: GCC 4.9, 5.3 and Clang 3.6, 3.7, 3.8</li>
 <li>OS X: Clang 3.6</li>
 </ul>
 <div class="section" id="dependencies">
@@ -159,14 +159,14 @@
 <ol class="arabic">
 <li><p class="first"><strong>Build dependencies</strong></p>
 <p>On debian based distributions like ubuntu run:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ sudo apt-get install g++-4.9 gdb git cmake libreadline-dev libssl-dev autoconf libtool pkgconf
+<div class="highlight-python"><div class="highlight"><pre>$ sudo apt-get install g++-4.9 gdb git cmake libreadline-dev libssl-dev libluajit-5.1-dev autoconf libtool pkgconf
 $ export CC=gcc-4.9 CXX=g++-4.9
 </pre></div>
 </div>
 <p>For other distribution you have to install the packages above.</p>
 <p>On OS X with homebrew:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ brew install llvm --with-clang --with-compiler-rt --with-libcxx --with-rtti
-$ brew install openssl pkgconfig
+$ brew install openssl luajit pkgconfig
 $ export CC=/usr/local/opt/llvm/bin/clang CXX=/usr/local/opt/llvm/bin/clang++
 $ export CXXFLAGS=&quot;-stdlib=libc++&quot; LDFLAGS=&quot;-stdlib=libc++&quot;
 $ export OPENSSL_CFLAGS=&quot;-I/usr/local/opt/openssl/include&quot; OPENSSL_LIBS=&quot;-L/usr/local/opt/openssl/lib -lssl -lcrypto&quot;
@@ -174,12 +174,12 @@ $ export OPENSSL_CFLAGS=&quot;-I/usr/local/opt/openssl/include&quot; OPENSSL_LIB
 </div>
 </li>
 <li><p class="first"><strong>Boost and boost.fiber</strong></p>
-<p>We install our boost build to <em>/usr/local/boost_head</em> and link it statically. So you should be able to use the boost version shipped with your distribution as usual for other applications:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ git clone --recursive https://github.com/boostorg/boost.git
-$ cd boost/libs
+<p>We install our boost build to <em>/usr/local/boost</em> and link it statically. So you should be able to use the boost version shipped with your distribution as usual for other applications:</p>
+<div class="highlight-python"><div class="highlight"><pre>$ curl -L https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2 | tar xj
+$ cd boost_1_61_0/libs
 $ git clone https://github.com/olk/boost-fiber.git fiber
 $ cd ..
-$ ./bootstrap.sh --prefix=/usr/local/boost_head --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test
+$ ./bootstrap.sh --prefix=/usr/local/boost --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic
 </pre></div>
 </div>
 <p>Linux:</p>
@@ -210,35 +210,13 @@ $ ./bootstrap.sh --prefix=/usr/local/boost_head --without-icu --with-libraries=f
 <li><p class="first"><strong>nghttp2</strong>:</p>
 <div class="highlight-python"><div class="highlight"><pre>$ curl -L https://github.com/tatsuhiro-t/nghttp2/releases/download/v1.7.0/nghttp2-1.7.0.tar.bz2 | tar xj
 $ cd nghttp2-1.7.0
-$ ./configure --with-boost=/usr/local/boost_head --enable-asio-lib
+$ ./configure --with-boost=/usr/local/boost --enable-asio-lib
 $ sudo make install
 $ cd ..
 </pre></div>
 </div>
 </li>
-<li><p class="first"><strong>LUA</strong>:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ curl http://www.lua.org/ftp/lua-5.3.2.tar.gz | tar xz
-$ cd lua-5.3.2
-</pre></div>
-</div>
-</li>
 </ol>
-<blockquote>
-<div><p>Linux:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ make linux CC=&quot;$CXX -std=c++11 -fPIC&quot;
-$ sudo make install
-</pre></div>
-</div>
-<p>OS X:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ make posix CC=&quot;$CXX -std=c++11&quot;
-$ make install
-</pre></div>
-</div>
-<p>All:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ cd ..
-</pre></div>
-</div>
-</div></blockquote>
 </div>
 <div class="section" id="petrel">
 <h2>Petrel<a class="headerlink" href="#petrel" title="Permalink to this headline">¶</a></h2>
@@ -250,11 +228,11 @@ $ cd build
 </pre></div>
 </div>
 <p>Linux:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
+<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC ..
 </pre></div>
 </div>
 <p>OS X:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost_head -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
+<div class="highlight-python"><div class="highlight"><pre>$ cmake -DBOOST_ROOT=/usr/local/boost -DCMAKE_CXX_COMPILER=$CXX -DCMAKE_C_COMPILER=$CC -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl ..
 </pre></div>
 </div>
 <p>All:</p>
@@ -306,7 +284,7 @@ $ sudo make install
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.1.0',
+            VERSION:'0.2.0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -3,8 +3,7 @@ Installation Guide
 
 Petrel has the following dependencies that you need to compile yourself at the moment:
 
-* boost 1.61+
-* boost.fiber (not yet part of the official boost libraries)
+* boost 1.62+
 * nghttp2 1.7+
 * luajit 2+ or lua 5.2+ (Note: Stock lua needs to be compiled with C++ support!)
 
@@ -33,14 +32,12 @@ Dependencies
      $ export CXXFLAGS="-stdlib=libc++" LDFLAGS="-stdlib=libc++"
      $ export OPENSSL_CFLAGS="-I/usr/local/opt/openssl/include" OPENSSL_LIBS="-L/usr/local/opt/openssl/lib -lssl -lcrypto"
 
-#. **Boost and boost.fiber**
+#. **Boost**
 
    We install our boost build to */usr/local/boost* and link it statically. So you should be able to use the boost version shipped with your distribution as usual for other applications::
 
-     $ curl -L https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2 | tar xj
-     $ cd boost_1_61_0/libs
-     $ git clone https://github.com/olk/boost-fiber.git fiber
-     $ cd ..
+     $ curl -L http://downloads.sourceforge.net/project/boost/boost/1.62.0/boost_1_62_0.tar.bz2 | tar xj
+     $ cd boost_1_62_0
      $ ./bootstrap.sh --prefix=/usr/local/boost --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic
 
    Linux::

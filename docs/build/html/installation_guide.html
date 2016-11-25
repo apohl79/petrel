@@ -144,8 +144,7 @@
 <h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Permalink to this headline">¶</a></h1>
 <p>Petrel has the following dependencies that you need to compile yourself at the moment:</p>
 <ul class="simple">
-<li>boost 1.61+</li>
-<li>boost.fiber (not yet part of the official boost libraries)</li>
+<li>boost 1.62+</li>
 <li>nghttp2 1.7+</li>
 <li>luajit 2+ or lua 5.2+ (Note: Stock lua needs to be compiled with C++ support!)</li>
 </ul>
@@ -173,12 +172,10 @@ $ export OPENSSL_CFLAGS=&quot;-I/usr/local/opt/openssl/include&quot; OPENSSL_LIB
 </pre></div>
 </div>
 </li>
-<li><p class="first"><strong>Boost and boost.fiber</strong></p>
+<li><p class="first"><strong>Boost</strong></p>
 <p>We install our boost build to <em>/usr/local/boost</em> and link it statically. So you should be able to use the boost version shipped with your distribution as usual for other applications:</p>
-<div class="highlight-python"><div class="highlight"><pre>$ curl -L https://sourceforge.net/projects/boost/files/boost/1.61.0/boost_1_61_0.tar.bz2 | tar xj
-$ cd boost_1_61_0/libs
-$ git clone https://github.com/olk/boost-fiber.git fiber
-$ cd ..
+<div class="highlight-python"><div class="highlight"><pre>$ curl -L http://downloads.sourceforge.net/project/boost/boost/1.62.0/boost_1_62_0.tar.bz2 | tar xj
+$ cd boost_1_62_0
 $ ./bootstrap.sh --prefix=/usr/local/boost --without-icu --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic
 </pre></div>
 </div>

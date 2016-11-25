@@ -85,11 +85,8 @@ before_script:
   - export CC=$USE_CC; export CXX=$USE_CXX
   - export BUILD_ROOT=$(pwd)
   - cd $HOME
-  - curl http://netcologne.dl.sourceforge.net/project/boost/boost/1.61.0/boost_1_61_0.tar.bz2 | tar xj
-  - pushd "boost_1_61_0"
-  - pushd "libs"
-  - if [ ! -d fiber ]; then git clone https://github.com/olk/boost-fiber.git fiber; else cd fiber; git pull; cd ..; fi
-  - popd
+  - curl https://netcologne.dl.sourceforge.net/project/boost/boost/1.62.0/boost_1_62_0.tar.bz2 | tar xj
+  - pushd "boost_1_62_0"
   - export GCC=$(which $CXX)
   - echo -e "using gcc \x3a \x3a $GCC ;" > user-config.jam; cat user-config.jam
   - ./bootstrap.sh --prefix=/usr/local/boost --with-libraries=fiber,context,thread,date_time,filesystem,system,program_options,test,atomic

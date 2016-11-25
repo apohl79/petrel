@@ -18,7 +18,7 @@ endif(LIB64 AND (CMAKE_SYSTEM_NAME STREQUAL "Linux"))
 set(INSTALL_LIB_DIR lib${LIB_SUFFIX} CACHE PATH "Installation directory for libraries")
 mark_as_advanced(INSTALL_LIB_DIR)
 
-find_package(Boost 1.59.0 COMPONENTS
+find_package(Boost 1.62.0 COMPONENTS
   system
   thread
   program_options
@@ -159,6 +159,7 @@ target_link_libraries(${LIB_CORE_NAME} dl m)
 install(TARGETS ${LIB_CORE_NAME} DESTINATION ${INSTALL_LIB_DIR})
 
 add_executable(${PROJECT_NAME} main.cpp)
+add_dependencies(${PROJECT_NAME} headers_target)
 add_dependencies(${PROJECT_NAME} ${LIB_CORE_NAME})
 target_link_libraries(${PROJECT_NAME} ${LIB_CORE_NAME})
 if(JEMALLOC_FOUND)

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8)
 
 set(COMP_FLAGS "-Wall -Wextra -Wlong-long -Wmissing-braces -g")
 
-find_package(Boost 1.59.0 COMPONENTS
+find_package(Boost 1.62.0 COMPONENTS
   system
   fiber
   context

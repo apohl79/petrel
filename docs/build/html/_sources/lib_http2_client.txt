@@ -16,29 +16,23 @@ Usage in LUA::
 .. method:: http2_client()
 
    Constructor.
-              
+
    :return: A http2_client object
    :rtype: http_client
 
    .. method:: connect(host, [port = "80"], [ssl = false], [ssl_verify = true])
 
       Connect to an endpoint.
-              
+
       :param string host: The hostname or ip address to connect to.
       :param string port: The port to connect to.
       :param boolean ssl: Enable SSL for the connection.
       :param boolean ssl_verify: If SSL is enabled, this value defines if the server certificate gets verified.
 
-   .. method:: connect_timeout(milliseconds)
-
-      Set the timeout in milliseconds for a connection attempt. The default is set to 5000.
-              
-      :param int milliseconds: The timeout.
-
    .. method:: read_timeout(milliseconds)
 
       Set the timeout in milliseconds for a read attempt. The default is set to 5000.
-              
+
       :param int milliseconds: The timeout.
 
    .. method:: get(path)
